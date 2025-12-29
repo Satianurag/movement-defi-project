@@ -11,7 +11,7 @@ import {
     LayersIcon,
     RefreshCwIcon,
 } from 'lucide-react-native';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { useState, useCallback } from 'react';
 
 export default function ExploreScreen() {
@@ -28,8 +28,19 @@ export default function ExploreScreen() {
     }, [refetch]);
 
     const handlePoolPress = (pool: PoolData) => {
-        // TODO: Navigate to pool detail screen
-        console.log('Pool pressed:', pool.name);
+        router.push({
+            pathname: '/pool/[slug]' as any,
+            params: {
+                slug: pool.slug || pool.name.toLowerCase().replace(/\s+/g, '-'),
+                name: pool.name,
+                tvl: pool.tvl?.toString() || '0',
+                apy: pool.apy || '',
+                category: pool.category,
+                change_7d: pool.change_7d || '',
+                apyNote: pool.apyNote || '',
+                apySource: pool.apySource || '',
+            },
+        });
     };
 
     return (
