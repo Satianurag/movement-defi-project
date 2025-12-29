@@ -1,4 +1,6 @@
 import { Text } from '@/components/ui/text';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import {
     TrendingUpIcon,
@@ -104,95 +106,91 @@ export function PoolCard({ pool, onPress }: PoolCardProps) {
     const apyColor = getApyColorClass(pool.apy);
 
     return (
-        <Pressable
-            onPress={onPress}
-            className={cn(
-                'rounded-xl border border-border bg-card p-4 shadow-sm',
-                'active:opacity-80 active:scale-[0.98]',
-                Platform.select({
-                    web: 'hover:border-primary/30 hover:shadow-md transition-all duration-200 cursor-pointer',
-                })
-            )}
-        >
-            {/* Header: Name + Category */}
-            <View className="flex-row items-start justify-between mb-4">
-                <View className="flex-1">
-                    <View className="flex-row items-center gap-2 mb-1">
-                        <View className="h-8 w-8 rounded-full bg-primary/10 items-center justify-center">
-                            <LayersIcon size={16} className="text-primary" />
+        <Card className="overflow-hidden">
+            <Pressable
+                onPress={onPress}
+                className={cn(
+                    'p-4',
+                    'active:bg-muted/50',
+                    Platform.select({
+                        web: 'hover:bg-muted/20 transition-colors duration-200 cursor-pointer',
+                    })
+                )}
+            >
+                {/* Header: Name + Category */}
+                <View className="flex-row items-start justify-between mb-4">
+                    <View className="flex-1">
+                        <View className="flex-row items-center gap-2 mb-1">
+                            <View className="h-8 w-8 rounded-full bg-primary/10 items-center justify-center">
+                                <LayersIcon size={16} className="text-primary" />
+                            </View>
+                            <Text className="text-lg font-semibold text-foreground">
+                                {pool.name}
+                            </Text>
                         </View>
-                        <Text className="text-lg font-semibold text-foreground">
-                            {pool.name}
+                    </View>
+                    {/* Category Badge */}
+                    <Badge variant="outline" className={cn(categoryStyle.bg, categoryStyle.border)}>
+                        <Text className={cn('text-[10px] font-bold uppercase tracking-wider', categoryStyle.text)}>
+                            {pool.category}
+                        </Text>
+                    </Badge>
+                </View>
+
+                {/* Metrics Grid */}
+                <View className="flex-row gap-4">
+                    {/* TVL */}
+                    <View className="flex-1 bg-muted/50 rounded-lg p-3">
+                        <View className="flex-row items-center gap-1.5 mb-1">
+                            <CoinsIcon size={12} className="text-muted-foreground" />
+                            <Text className="text-xs text-muted-foreground font-medium">TVL</Text>
+                        </View>
+                        <Text className="text-base font-bold text-foreground">
+                            {formatTVL(pool.tvl)}
+                        </Text>
+                    </View>
+
+                    {/* APY */}
+                    <View className="flex-1 bg-muted/50 rounded-lg p-3">
+                        <View className="flex-row items-center gap-1.5 mb-1">
+                            <PercentIcon size={12} className="text-muted-foreground" />
+                            <Text className="text-xs text-muted-foreground font-medium">APY</Text>
+                        </View>
+                        <Text className={cn('text-base font-bold', apyColor)}>
+                            {pool.apy || 'N/A'}
+                        </Text>
+                    </View>
+
+                    {/* 7D Change */}
+                    <View className="flex-1 bg-muted/50 rounded-lg p-3">
+                        <View className="flex-row items-center gap-1.5 mb-1">
+                            {isPositive ? (
+                                <TrendingUpIcon size={12} className="text-emerald-500" />
+                            ) : (
+                                <TrendingDownIcon size={12} className="text-red-500" />
+                            )}
+                            <Text className="text-xs text-muted-foreground font-medium">7D</Text>
+                        </View>
+                        <Text
+                            className={cn(
+                                'text-base font-bold',
+                                isPositive ? 'text-emerald-500' : 'text-red-500'
+                            )}
+                        >
+                            {isPositive ? '+' : '-'}{changeValue}
                         </Text>
                     </View>
                 </View>
-                {/* Category Badge */}
-                <View
-                    className={cn(
-                        'px-2.5 py-1 rounded-full border',
-                        categoryStyle.bg,
-                        categoryStyle.border
-                    )}
-                >
-                    <Text className={cn('text-xs font-medium', categoryStyle.text)}>
-                        {pool.category}
-                    </Text>
-                </View>
-            </View>
 
-            {/* Metrics Grid */}
-            <View className="flex-row gap-4">
-                {/* TVL */}
-                <View className="flex-1 bg-muted/50 rounded-lg p-3">
-                    <View className="flex-row items-center gap-1.5 mb-1">
-                        <CoinsIcon size={12} className="text-muted-foreground" />
-                        <Text className="text-xs text-muted-foreground font-medium">TVL</Text>
+                {/* APY Source Note (subtle footer) */}
+                {pool.apyNote && (
+                    <View className="mt-3 pt-3 border-t border-border/50">
+                        <Text className="text-xs text-muted-foreground italic">
+                            {pool.apyNote}
+                        </Text>
                     </View>
-                    <Text className="text-base font-bold text-foreground">
-                        {formatTVL(pool.tvl)}
-                    </Text>
-                </View>
-
-                {/* APY */}
-                <View className="flex-1 bg-muted/50 rounded-lg p-3">
-                    <View className="flex-row items-center gap-1.5 mb-1">
-                        <PercentIcon size={12} className="text-muted-foreground" />
-                        <Text className="text-xs text-muted-foreground font-medium">APY</Text>
-                    </View>
-                    <Text className={cn('text-base font-bold', apyColor)}>
-                        {pool.apy || 'N/A'}
-                    </Text>
-                </View>
-
-                {/* 7D Change */}
-                <View className="flex-1 bg-muted/50 rounded-lg p-3">
-                    <View className="flex-row items-center gap-1.5 mb-1">
-                        {isPositive ? (
-                            <TrendingUpIcon size={12} className="text-emerald-500" />
-                        ) : (
-                            <TrendingDownIcon size={12} className="text-red-500" />
-                        )}
-                        <Text className="text-xs text-muted-foreground font-medium">7D</Text>
-                    </View>
-                    <Text
-                        className={cn(
-                            'text-base font-bold',
-                            isPositive ? 'text-emerald-500' : 'text-red-500'
-                        )}
-                    >
-                        {isPositive ? '+' : '-'}{changeValue}
-                    </Text>
-                </View>
-            </View>
-
-            {/* APY Source Note (subtle footer) */}
-            {pool.apyNote && (
-                <View className="mt-3 pt-3 border-t border-border/50">
-                    <Text className="text-xs text-muted-foreground italic">
-                        {pool.apyNote}
-                    </Text>
-                </View>
-            )}
-        </Pressable>
+                )}
+            </Pressable>
+        </Card>
     );
 }

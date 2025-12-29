@@ -1,37 +1,23 @@
+import * as ProgressPrimitive from '@rn-primitives/progress';
+import * as React from 'react';
+import { Platform, View } from 'react-native';
 import { cn } from '@/lib/utils';
-import { View } from 'react-native';
 
-interface ProgressProps {
-    value?: number;
-    max?: number;
-    className?: string;
-    indicatorClassName?: string;
-}
-
-function Progress({
-    value = 0,
-    max = 100,
-    className,
-    indicatorClassName,
-}: ProgressProps) {
-    const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
-
-    return (
-        <View
-            className={cn(
-                'relative h-2 w-full overflow-hidden rounded-full bg-secondary',
-                className
-            )}
-        >
-            <View
-                className={cn(
-                    'h-full bg-primary transition-all',
-                    indicatorClassName
-                )}
-                style={{ width: `${percentage}%` }}
-            />
-        </View>
-    );
-}
+const Progress = React.forwardRef<
+    React.ElementRef<typeof ProgressPrimitive.Root>,
+    React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>
+>(({ className, value, ...props }, ref) => (
+    <ProgressPrimitive.Root
+        ref={ref}
+        className={cn('relative h-4 w-full overflow-hidden rounded-full bg-secondary', className)}
+        {...props}
+    >
+        <ProgressPrimitive.Indicator
+            className={cn('h-full w-full flex-1 bg-primary transition-all', Platform.OS === 'web' && 'duration-500')}
+            style={{ transform: [{ translateX: -100 + (value || 0) }] }}
+        />
+    </ProgressPrimitive.Root>
+));
+Progress.displayName = ProgressPrimitive.Root.displayName;
 
 export { Progress };

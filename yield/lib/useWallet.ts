@@ -1,5 +1,7 @@
 import { usePrivy, useEmbeddedEthereumWallet } from '@privy-io/expo';
-import { useCallback } from 'react';
+// Note: Smart wallets import is commented out due to permissionless package bundling issues on web
+// import { useSmartWallets } from '@privy-io/expo/smart-wallets';
+import { useCallback, useMemo } from 'react';
 
 /**
  * Custom hook wrapping Privy wallet functionality for the Movement DeFi app.
@@ -8,9 +10,18 @@ import { useCallback } from 'react';
 export function useWallet() {
     const { user, isReady, logout } = usePrivy();
     const { wallets, create } = useEmbeddedEthereumWallet();
+    // Smart wallets disabled for now due to bundling issues
+    // const { client: smartWalletClient } = useSmartWallets();
+    const smartWalletClient = null;
 
     const wallet = wallets?.[0];
     const isAuthenticated = !!user;
+
+    // Find the smart wallet address from linked accounts
+    const smartWalletAddress = useMemo(() => {
+        return user?.linked_accounts.find((account) => account.type === 'smart_wallet')?.address;
+    }, [user]);
+
     const isWalletReady = isReady && !!wallet;
 
     /**
@@ -73,6 +84,27 @@ export function useWallet() {
     }, [wallet]);
 
     /**
+     * Send a transaction via Smart Wallet (Account Abstraction)
+     * Note: Currently disabled due to bundling issues
+     */
+    const sendSmartTransaction = useCallback(async (params: {
+        to: string;
+        value?: string;
+        data?: string;
+    }): Promise<string> => {
+        if (!smartWalletClient) throw new Error('Smart wallet not available - feature disabled');
+
+        // This code path is currently unreachable
+        const txHash = await (smartWalletClient as any).sendTransaction({
+            to: params.to as any,
+            value: params.value ? BigInt(params.value) : 0n,
+            data: params.data as any,
+        });
+
+        return txHash;
+    }, [smartWalletClient]);
+
+    /**
      * Create an embedded wallet if one doesn't exist
      */
     const createWallet = useCallback(async () => {
@@ -86,16 +118,20 @@ export function useWallet() {
         user,
         wallet,
         address: wallet?.address,
+        smartWalletAddress,
         isReady,
         isAuthenticated,
         isWalletReady,
+        isSmartWalletReady: !!smartWalletClient && !!smartWalletAddress,
 
         // Methods
         getAddress,
         getProvider,
         signMessage,
         sendTransaction,
+        sendSmartTransaction,
         createWallet,
         logout,
     };
 }
+

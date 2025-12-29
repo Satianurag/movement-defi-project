@@ -82,6 +82,7 @@ export default function PoolDetailScreen() {
     const [isLoading, setIsLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [totalTVL, setTotalTVL] = useState(0);
+    const [activeTab, setActiveTab] = useState('overview');
 
     // Initialize from params
     useEffect(() => {
@@ -179,7 +180,7 @@ export default function PoolDetailScreen() {
 
                     {/* Quick Stats Row */}
                     <View className="flex-row gap-3 mt-2">
-                        <View className="flex-1 bg-card border border-border rounded-xl p-4">
+                        <Card className="flex-1 p-4 shadow-none border-border/50">
                             <View className="flex-row items-center gap-1.5 mb-1">
                                 <CoinsIcon size={14} className="text-muted-foreground" />
                                 <Text className="text-xs text-muted-foreground">TVL</Text>
@@ -187,9 +188,9 @@ export default function PoolDetailScreen() {
                             <Text className="text-xl font-bold text-foreground">
                                 {formatTVL(pool.tvl)}
                             </Text>
-                        </View>
+                        </Card>
 
-                        <View className="flex-1 bg-card border border-border rounded-xl p-4">
+                        <Card className="flex-1 p-4 shadow-none border-border/50">
                             <View className="flex-row items-center gap-1.5 mb-1">
                                 <PercentIcon size={14} className="text-muted-foreground" />
                                 <Text className="text-xs text-muted-foreground">APY</Text>
@@ -200,9 +201,9 @@ export default function PoolDetailScreen() {
                             )}>
                                 {pool.apy || 'N/A'}
                             </Text>
-                        </View>
+                        </Card>
 
-                        <View className="flex-1 bg-card border border-border rounded-xl p-4">
+                        <Card className="flex-1 p-4 shadow-none border-border/50">
                             <View className="flex-row items-center gap-1.5 mb-1">
                                 {isPositive ? (
                                     <TrendingUpIcon size={14} className="text-emerald-500" />
@@ -217,13 +218,13 @@ export default function PoolDetailScreen() {
                             )}>
                                 {isPositive ? '+' : '-'}{changeValue}
                             </Text>
-                        </View>
+                        </Card>
                     </View>
                 </View>
 
                 {/* Tabs Section */}
                 <View className="px-6">
-                    <Tabs defaultValue="overview">
+                    <Tabs value={activeTab} onValueChange={setActiveTab}>
                         <TabsList className="mb-4">
                             <TabsTrigger value="overview">Overview</TabsTrigger>
                             <TabsTrigger value="details">Details</TabsTrigger>

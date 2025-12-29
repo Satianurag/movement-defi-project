@@ -1,6 +1,7 @@
 import { PoolCard, PoolData } from '@/components/PoolCard';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { RefreshCwIcon, AlertCircleIcon, InboxIcon } from 'lucide-react-native';
 import { View, ScrollView, ActivityIndicator, Platform } from 'react-native';
@@ -17,9 +18,9 @@ function LoadingSkeleton() {
     return (
         <View className="gap-4">
             {[1, 2, 3].map((i) => (
-                <View
+                <Card
                     key={i}
-                    className="rounded-xl border border-border bg-card p-4 animate-pulse"
+                    className="p-4 opacity-50"
                 >
                     {/* Header skeleton */}
                     <View className="flex-row items-center justify-between mb-4">
@@ -38,7 +39,7 @@ function LoadingSkeleton() {
                             </View>
                         ))}
                     </View>
-                </View>
+                </Card>
             ))}
         </View>
     );

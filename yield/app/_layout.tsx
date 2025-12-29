@@ -7,6 +7,8 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import { PrivyProvider } from '@privy-io/expo';
+// Note: SmartWalletsProvider disabled due to permissionless package bundling issues on web
+// import { SmartWalletsProvider } from '@privy-io/expo/smart-wallets';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -14,15 +16,18 @@ export {
 } from 'expo-router';
 
 // Privy configuration
-// TODO: Replace with your actual Privy App ID and Client ID from dashboard.privy.io
-const PRIVY_APP_ID = process.env.EXPO_PUBLIC_PRIVY_APP_ID || 'your-privy-app-id';
-const PRIVY_CLIENT_ID = process.env.EXPO_PUBLIC_PRIVY_CLIENT_ID || 'your-privy-client-id';
+const PRIVY_APP_ID = process.env.EXPO_PUBLIC_PRIVY_APP_ID || '';
+const PRIVY_CLIENT_ID = process.env.EXPO_PUBLIC_PRIVY_CLIENT_ID || '';
 
 export default function RootLayout() {
   const { colorScheme } = useColorScheme();
 
   return (
-    <PrivyProvider appId={PRIVY_APP_ID} clientId={PRIVY_CLIENT_ID}>
+    <PrivyProvider
+      appId={PRIVY_APP_ID}
+      clientId={PRIVY_CLIENT_ID}
+    >
+      {/* SmartWalletsProvider removed - re-enable when bundling issues are resolved */}
       <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         <Stack>
@@ -35,3 +40,4 @@ export default function RootLayout() {
     </PrivyProvider>
   );
 }
+

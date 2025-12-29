@@ -1,7 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { useLoginWithEmail, usePrivy } from '@privy-io/expo';
+import {
+    useLoginWithEmail,
+    useLoginWithOAuth,
+    usePrivy
+} from '@privy-io/expo';
+import { useLoginWithPasskey } from '@privy-io/expo/passkey';
 import { router } from 'expo-router';
 import {
     MailIcon,
@@ -9,13 +16,16 @@ import {
     WalletIcon,
     ArrowRightIcon,
     LoaderIcon,
+    FingerprintIcon,
 } from 'lucide-react-native';
 import { useState } from 'react';
-import { View, TextInput, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
+import { View, KeyboardAvoidingView, Platform, Image } from 'react-native';
 
 export default function SignInScreen() {
     const { isReady } = usePrivy();
-    const { sendCode, loginWithCode, state } = useLoginWithEmail();
+    const { sendCode, loginWithCode, state: emailState } = useLoginWithEmail();
+    const { login: loginWithOAuth, state: oauthState } = useLoginWithOAuth();
+    const { loginWithPasskey, state: passkeyState } = useLoginWithPasskey();
 
     const [email, setEmail] = useState('');
     const [code, setCode] = useState('');
@@ -89,27 +99,22 @@ export default function SignInScreen() {
                     {step === 'email' ? (
                         <>
                             {/* Email Input */}
-                            <View className="bg-muted/50 border border-border rounded-xl p-4 flex-row items-center gap-3">
-                                <MailIcon size={20} className="text-muted-foreground" />
-                                <TextInput
-                                    className="flex-1 text-foreground text-base"
-                                    placeholder="Enter your email"
-                                    placeholderTextColor="#888"
-                                    value={email}
-                                    onChangeText={setEmail}
-                                    keyboardType="email-address"
-                                    autoCapitalize="none"
-                                    autoCorrect={false}
-                                />
-                            </View>
+                            <Input
+                                placeholder="Enter your email"
+                                value={email}
+                                onChangeText={setEmail}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                            />
 
                             {/* Send Code Button */}
                             <Button
                                 onPress={handleSendCode}
-                                disabled={state.status === 'sending-code'}
+                                disabled={emailState.status === 'sending-code'}
                                 className="w-full h-14"
                             >
-                                {state.status === 'sending-code' ? (
+                                {emailState.status === 'sending-code' ? (
                                     <LoaderIcon size={20} className="text-primary-foreground animate-spin" />
                                 ) : (
                                     <>
@@ -118,22 +123,62 @@ export default function SignInScreen() {
                                     </>
                                 )}
                             </Button>
+
+                            {/* Separator */}
+                            <View className="flex-row items-center gap-4 my-2">
+                                <Separator className="flex-1" />
+                                <Text className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">
+                                    Or continue with
+                                </Text>
+                                <Separator className="flex-1" />
+                            </View>
+
+                            {/* Social Logins */}
+                            <View className="flex-row gap-3">
+                                <Button
+                                    variant="outline"
+                                    className="flex-1 h-14 bg-card"
+                                    onPress={() => loginWithOAuth({ provider: 'google' })}
+                                    disabled={oauthState.status === 'loading'}
+                                >
+                                    <View className="flex-row items-center gap-2">
+                                        <Text className="font-semibold">Google</Text>
+                                    </View>
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    className="flex-1 h-14 bg-card"
+                                    onPress={() => loginWithOAuth({ provider: 'apple' })}
+                                    disabled={oauthState.status === 'loading'}
+                                >
+                                    <View className="flex-row items-center gap-2">
+                                        <Text className="font-semibold">Apple</Text>
+                                    </View>
+                                </Button>
+                            </View>
+
+                            {/* Passkey Login */}
+                            <Button
+                                variant="secondary"
+                                className="w-full h-14"
+                                onPress={() => loginWithPasskey({} as any)}
+                                disabled={passkeyState.status !== 'initial' && passkeyState.status !== 'done'}
+                            >
+                                <FingerprintIcon size={20} className="text-foreground" />
+                                <Text className="font-semibold">Sign in with Passkey</Text>
+                            </Button>
                         </>
                     ) : (
                         <>
                             {/* Code Input */}
-                            <View className="bg-muted/50 border border-border rounded-xl p-4 flex-row items-center gap-3">
-                                <KeyIcon size={20} className="text-muted-foreground" />
-                                <TextInput
-                                    className="flex-1 text-foreground text-base tracking-widest"
-                                    placeholder="Enter 6-digit code"
-                                    placeholderTextColor="#888"
-                                    value={code}
-                                    onChangeText={setCode}
-                                    keyboardType="number-pad"
-                                    maxLength={6}
-                                />
-                            </View>
+                            <Input
+                                placeholder="Enter 6-digit code"
+                                value={code}
+                                onChangeText={setCode}
+                                keyboardType="number-pad"
+                                maxLength={6}
+                                className="text-center tracking-widest"
+                            />
 
                             <Text className="text-sm text-muted-foreground text-center">
                                 We sent a code to {email}
@@ -142,10 +187,10 @@ export default function SignInScreen() {
                             {/* Verify Button */}
                             <Button
                                 onPress={handleVerifyCode}
-                                disabled={state.status === 'submitting-code'}
+                                disabled={emailState.status === 'submitting-code'}
                                 className="w-full h-14"
                             >
-                                {state.status === 'submitting-code' ? (
+                                {emailState.status === 'submitting-code' ? (
                                     <LoaderIcon size={20} className="text-primary-foreground animate-spin" />
                                 ) : (
                                     <>
@@ -179,13 +224,11 @@ export default function SignInScreen() {
 
                 {/* Skip for now */}
                 <View className="mt-8 items-center">
-                    <Pressable onPress={handleSkip}>
-                        <Text className="text-muted-foreground underline">
-                            Skip for now
-                        </Text>
-                    </Pressable>
+                    <Button variant="ghost" onPress={handleSkip}>
+                        <Text className="text-muted-foreground">Skip for now</Text>
+                    </Button>
                 </View>
             </View>
-        </KeyboardAvoidingView>
+        </KeyboardAvoidingView >
     );
 }

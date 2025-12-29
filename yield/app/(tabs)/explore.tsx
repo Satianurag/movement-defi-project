@@ -2,6 +2,7 @@ import { PoolList } from '@/components/PoolList';
 import { PoolData } from '@/components/PoolCard';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { usePoolsData, calculateTotalTVL, formatTotalTVL } from '@/lib/usePoolsData';
 import { View, RefreshControl } from 'react-native';
 import {
@@ -78,7 +79,7 @@ export default function ExploreScreen() {
                     {/* Stats Cards */}
                     <View className="flex-row gap-3">
                         {/* Total TVL */}
-                        <View className="flex-1 bg-primary/5 border border-primary/10 rounded-xl p-4">
+                        <Card className="flex-1 bg-primary/5 border-primary/10 p-4">
                             <View className="flex-row items-center gap-1.5 mb-1">
                                 <CoinsIcon size={14} className="text-primary" />
                                 <Text className="text-xs text-muted-foreground font-medium">
@@ -88,10 +89,10 @@ export default function ExploreScreen() {
                             <Text className="text-xl font-bold text-foreground">
                                 {isLoading ? '...' : formatTotalTVL(totalTVL)}
                             </Text>
-                        </View>
+                        </Card>
 
                         {/* Total Protocols */}
-                        <View className="flex-1 bg-muted/50 border border-border rounded-xl p-4">
+                        <Card className="flex-1 bg-muted/50 p-4">
                             <View className="flex-row items-center gap-1.5 mb-1">
                                 <LayersIcon size={14} className="text-muted-foreground" />
                                 <Text className="text-xs text-muted-foreground font-medium">
@@ -101,10 +102,10 @@ export default function ExploreScreen() {
                             <Text className="text-xl font-bold text-foreground">
                                 {isLoading ? '...' : totalProtocols}
                             </Text>
-                        </View>
+                        </Card>
 
                         {/* Active Pools */}
-                        <View className="flex-1 bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-4">
+                        <Card className="flex-1 bg-emerald-500/5 border-emerald-500/10 p-4">
                             <View className="flex-row items-center gap-1.5 mb-1">
                                 <TrendingUpIcon size={14} className="text-emerald-500" />
                                 <Text className="text-xs text-muted-foreground font-medium">
@@ -114,7 +115,7 @@ export default function ExploreScreen() {
                             <Text className="text-xl font-bold text-foreground">
                                 {isLoading ? '...' : pools.length}
                             </Text>
-                        </View>
+                        </Card>
                     </View>
                 </View>
 
