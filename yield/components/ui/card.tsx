@@ -17,9 +17,17 @@ const Card = React.forwardRef<React.ElementRef<typeof View>, React.ComponentProp
 );
 Card.displayName = 'Card';
 
+import { Text } from '@/components/ui/text';
+
 const CardHeader = React.forwardRef<React.ElementRef<typeof View>, React.ComponentPropsWithoutRef<typeof View>>(
     ({ className, ...props }, ref) => (
-        <View ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
+        <View ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props}>
+            {typeof props.children === 'string' || typeof props.children === 'number' ? (
+                <Text>{props.children}</Text>
+            ) : (
+                props.children
+            )}
+        </View>
     )
 );
 CardHeader.displayName = 'CardHeader';
@@ -51,7 +59,13 @@ CardDescription.displayName = 'CardDescription';
 
 const CardContent = React.forwardRef<React.ElementRef<typeof View>, React.ComponentPropsWithoutRef<typeof View>>(
     ({ className, ...props }, ref) => (
-        <View ref={ref} className={cn('p-6 pt-0', className)} {...props} />
+        <View ref={ref} className={cn('p-6 pt-0', className)} {...props}>
+            {typeof props.children === 'string' || typeof props.children === 'number' ? (
+                <Text>{props.children}</Text>
+            ) : (
+                props.children
+            )}
+        </View>
     )
 );
 CardContent.displayName = 'CardContent';
@@ -62,7 +76,13 @@ const CardFooter = React.forwardRef<React.ElementRef<typeof View>, React.Compone
             ref={ref}
             className={cn('flex flex-row items-center p-6 pt-0', className)}
             {...props}
-        />
+        >
+            {typeof props.children === 'string' || typeof props.children === 'number' ? (
+                <Text>{props.children}</Text>
+            ) : (
+                props.children
+            )}
+        </View>
     )
 );
 CardFooter.displayName = 'CardFooter';

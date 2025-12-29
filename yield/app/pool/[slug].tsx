@@ -1,5 +1,5 @@
 import { useLocalSearchParams, Stack, router } from 'expo-router';
-import { View, ScrollView, Pressable, Linking, Platform, RefreshControl } from 'react-native';
+import { View, ScrollView, Pressable, Linking, Platform, RefreshControl, Alert } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
@@ -24,8 +24,10 @@ import {
     BarChart3Icon,
     ActivityIcon,
     LoaderIcon,
+    CheckCircle2Icon,
 } from 'lucide-react-native';
 import { PoolData } from '@/components/PoolCard';
+import { useWallet } from '@/lib/useWallet';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000';
 
@@ -83,6 +85,19 @@ export default function PoolDetailScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const [totalTVL, setTotalTVL] = useState(0);
     const [activeTab, setActiveTab] = useState('overview');
+    const [isDepositing, setIsDepositing] = useState(false);
+
+    // Wallet hook
+    const {
+        isReady,
+        isAuthenticated,
+        isSmartWalletReady,
+        smartWalletAddress,
+        address,
+        sendSmartTransaction,
+        createWallet,
+        sendTransaction
+    } = useWallet();
 
     // Initialize from params
     useEffect(() => {
@@ -123,6 +138,61 @@ export default function PoolDetailScreen() {
         await fetchData();
         setRefreshing(false);
     }, [fetchData]);
+
+    const handleDeposit = async () => {
+        if (!isReady) return;
+
+        if (!isAuthenticated) {
+            router.push('/sign-in');
+            return;
+        }
+
+        setIsDepositing(true);
+        try {
+            // Determine which wallet to use
+            const targetAddress = smartWalletAddress || address;
+
+            if (!targetAddress) {
+                // If authenticated but no wallet, try to create one
+                await createWallet();
+                Alert.alert('Wallet Created', 'Please try depositing again.');
+                setIsDepositing(false);
+                return;
+            }
+
+            // For Hackathon Demo: Send a self-transfer of 0.000001 MOVE to prove network interaction
+            // In a real app, this would call a Vault contract
+            const value = '1000000000000'; // 0.000001 MOVE (18 decimal places)
+
+            let txHash;
+            if (isSmartWalletReady) {
+                console.log('Sending via Smart Wallet...');
+                txHash = await sendSmartTransaction({
+                    to: targetAddress,
+                    value: value,
+                    data: '0x'
+                });
+            } else {
+                console.log('Sending via EOA...');
+                txHash = await sendTransaction({
+                    to: targetAddress,
+                    value: value,
+                    data: '0x'
+                });
+            }
+
+            Alert.alert(
+                'Deposit Initiated',
+                `Transaction sent successfully!\nHash: ${txHash.slice(0, 10)}...`
+            );
+
+        } catch (error) {
+            console.error('Deposit error:', error);
+            Alert.alert('Deposit Failed', error instanceof Error ? error.message : 'Unknown error');
+        } finally {
+            setIsDepositing(false);
+        }
+    };
 
     if (!pool) {
         return (
@@ -225,10 +295,25 @@ export default function PoolDetailScreen() {
                 {/* Tabs Section */}
                 <View className="px-6">
                     <Tabs value={activeTab} onValueChange={setActiveTab}>
-                        <TabsList className="mb-4">
-                            <TabsTrigger value="overview">Overview</TabsTrigger>
-                            <TabsTrigger value="details">Details</TabsTrigger>
-                            <TabsTrigger value="info">Info</TabsTrigger>
+                        <TabsList className="w-full flex-row bg-transparent border-b border-border rounded-none p-0 h-auto mb-6">
+                            <TabsTrigger
+                                value="overview"
+                                className="flex-1 bg-transparent shadow-none border-b-2 border-transparent rounded-none py-3 text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none aria-selected:border-primary aria-selected:text-primary aria-selected:shadow-none"
+                            >
+                                Overview
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="details"
+                                className="flex-1 bg-transparent shadow-none border-b-2 border-transparent rounded-none py-3 text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none aria-selected:border-primary aria-selected:text-primary aria-selected:shadow-none"
+                            >
+                                Details
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="info"
+                                className="flex-1 bg-transparent shadow-none border-b-2 border-transparent rounded-none py-3 text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none aria-selected:border-primary aria-selected:text-primary aria-selected:shadow-none"
+                            >
+                                Info
+                            </TabsTrigger>
                         </TabsList>
 
                         {/* Overview Tab */}
@@ -431,9 +516,21 @@ export default function PoolDetailScreen() {
 
                 {/* Action Buttons */}
                 <View className="px-6 mt-6 gap-3">
-                    <Button className="w-full h-14">
-                        <WalletIcon size={18} className="text-primary-foreground" />
-                        <Text className="font-semibold">Deposit</Text>
+                    <Button
+                        className="w-full h-14"
+                        onPress={handleDeposit}
+                        disabled={isDepositing || !isReady}
+                    >
+                        {isDepositing ? (
+                            <LoaderIcon size={20} className="text-primary-foreground animate-spin" />
+                        ) : (
+                            <>
+                                <WalletIcon size={18} className="text-primary-foreground" />
+                                <Text className="font-semibold ml-2">
+                                    {isSmartWalletReady ? 'Deposit (Smart Wallet)' : 'Deposit'}
+                                </Text>
+                            </>
+                        )}
                     </Button>
 
                     <Button variant="outline" className="w-full" onPress={handleOpenProtocol}>

@@ -1,6 +1,5 @@
 import { usePrivy, useEmbeddedEthereumWallet } from '@privy-io/expo';
-// Note: Smart wallets import is commented out due to permissionless package bundling issues on web
-// import { useSmartWallets } from '@privy-io/expo/smart-wallets';
+import { useSmartWallets } from '@privy-io/expo/smart-wallets';
 import { useCallback, useMemo } from 'react';
 
 /**
@@ -10,9 +9,7 @@ import { useCallback, useMemo } from 'react';
 export function useWallet() {
     const { user, isReady, logout } = usePrivy();
     const { wallets, create } = useEmbeddedEthereumWallet();
-    // Smart wallets disabled for now due to bundling issues
-    // const { client: smartWalletClient } = useSmartWallets();
-    const smartWalletClient = null;
+    const { client: smartWalletClient } = useSmartWallets();
 
     const wallet = wallets?.[0];
     const isAuthenticated = !!user;
@@ -85,17 +82,15 @@ export function useWallet() {
 
     /**
      * Send a transaction via Smart Wallet (Account Abstraction)
-     * Note: Currently disabled due to bundling issues
      */
     const sendSmartTransaction = useCallback(async (params: {
         to: string;
         value?: string;
         data?: string;
     }): Promise<string> => {
-        if (!smartWalletClient) throw new Error('Smart wallet not available - feature disabled');
+        if (!smartWalletClient) throw new Error('Smart wallet not available');
 
-        // This code path is currently unreachable
-        const txHash = await (smartWalletClient as any).sendTransaction({
+        const txHash = await smartWalletClient.sendTransaction({
             to: params.to as any,
             value: params.value ? BigInt(params.value) : 0n,
             data: params.data as any,

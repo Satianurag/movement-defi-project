@@ -19,6 +19,8 @@ const TabsList = React.forwardRef<
 ));
 TabsList.displayName = TabsPrimitive.List.displayName;
 
+import { Text } from '@/components/ui/text';
+
 const TabsTrigger = React.forwardRef<
     React.ElementRef<typeof TabsPrimitive.Trigger>,
     React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
@@ -26,12 +28,17 @@ const TabsTrigger = React.forwardRef<
     <TabsPrimitive.Trigger
         ref={ref}
         className={cn(
-            'inline-flex items-center justify-center white-space-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 native:h-10 native:px-5',
-            props.value === props.value && 'bg-background text-foreground shadow-sm', // Simplified for clarity in logic
+            'inline-flex items-center justify-center white-space-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 native:h-10 native:px-5 web:data-[state=active]:bg-background web:data-[state=active]:text-foreground web:data-[state=active]:shadow-sm aria-selected:bg-background aria-selected:text-foreground aria-selected:shadow-sm',
             className
         )}
         {...props}
-    />
+    >
+        {typeof props.children === 'string' || typeof props.children === 'number' ? (
+            <Text className="text-sm font-medium">{props.children}</Text>
+        ) : (
+            props.children
+        )}
+    </TabsPrimitive.Trigger>
 ));
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
 

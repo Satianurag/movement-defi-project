@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
 import { View } from 'react-native';
-import { TextClassContext } from '@/components/ui/text';
+import { Text, TextClassContext } from '@/components/ui/text';
 
 const badgeVariants = cva(
     'inline-flex items-center rounded-full border border-border px-2.5 py-0.5 web:transition-colors web:focus:outline-none web:focus:ring-2 web:focus:ring-ring web:focus:ring-offset-2',
@@ -40,7 +40,13 @@ type BadgeProps = React.ComponentPropsWithoutRef<typeof View> & VariantProps<typ
 function Badge({ className, variant, ...props }: BadgeProps) {
     return (
         <TextClassContext.Provider value={badgeTextVariants({ variant })}>
-            <View className={cn(badgeVariants({ variant }), className)} {...props} />
+            <View className={cn(badgeVariants({ variant }), className)} {...props}>
+                {typeof props.children === 'string' || typeof props.children === 'number' ? (
+                    <Text>{props.children}</Text>
+                ) : (
+                    props.children
+                )}
+            </View>
         </TextClassContext.Provider>
     );
 }

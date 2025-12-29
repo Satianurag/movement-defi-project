@@ -92,6 +92,8 @@ type ButtonProps = React.ComponentProps<typeof Pressable> &
   React.RefAttributes<typeof Pressable> &
   VariantProps<typeof buttonVariants>;
 
+import { Text } from '@/components/ui/text';
+
 function Button({ className, variant, size, ...props }: ButtonProps) {
   return (
     <TextClassContext.Provider value={buttonTextVariants({ variant, size })}>
@@ -99,7 +101,13 @@ function Button({ className, variant, size, ...props }: ButtonProps) {
         className={cn(props.disabled && 'opacity-50', buttonVariants({ variant, size }), className)}
         role="button"
         {...props}
-      />
+      >
+        {typeof props.children === 'string' || typeof props.children === 'number' ? (
+          <Text className="text-sm font-medium">{props.children}</Text>
+        ) : (
+          props.children
+        )}
+      </Pressable>
     </TextClassContext.Provider>
   );
 }
