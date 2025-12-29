@@ -135,7 +135,7 @@ export default function OnboardingScreen() {
                         size="icon"
                         onPress={handleBack}
                         disabled={isFirstSlide}
-                        className={isFirstSlide ? 'opacity-0' : ''}
+                        style={isFirstSlide ? { opacity: 0 } : undefined}
                     >
                         <ChevronLeftIcon size={24} className="text-foreground" />
                     </Button>

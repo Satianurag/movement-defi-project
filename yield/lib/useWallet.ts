@@ -4,7 +4,7 @@ import { useCallback, useMemo } from 'react';
 
 /**
  * Custom hook wrapping Privy wallet functionality for the Movement DeFi app.
- * Provides easy access to wallet address, signing, and transaction methods.
+ * Provides easy access to wallet address, signing, transaction methods, and HD wallet management.
  */
 export function useWallet() {
     const { user, isReady, logout } = usePrivy();
@@ -18,6 +18,15 @@ export function useWallet() {
     const smartWalletAddress = useMemo(() => {
         return user?.linked_accounts.find((account) => account.type === 'smart_wallet')?.address;
     }, [user]);
+
+    // Get all HD wallet addresses
+    const allWallets = useMemo(() => {
+        return wallets.map((w, index) => ({
+            address: w.address,
+            hdIndex: index,
+            isActive: index === 0,
+        }));
+    }, [wallets]);
 
     const isWalletReady = isReady && !!wallet;
 
@@ -108,10 +117,33 @@ export function useWallet() {
         }
     }, [wallets, create]);
 
+    /**
+     * Create an additional HD wallet (with a new index)
+     * This creates a new wallet under the same account with a different derivation path
+     */
+    const createAdditionalWallet = useCallback(async (): Promise<string | null> => {
+        try {
+            // Create a new wallet - Privy will automatically assign the next HD index
+            const result = await create();
+            // Result may be void or return wallet info depending on SDK version
+            return wallets[wallets.length - 1]?.address || null;
+        } catch (error) {
+            console.error('Failed to create additional wallet:', error);
+            throw error;
+        }
+    }, [create, wallets]);
+
+    /**
+     * Get wallet count (number of HD wallets)
+     */
+    const walletCount = wallets.length;
+
     return {
         // State
         user,
         wallet,
+        wallets: allWallets,
+        walletCount,
         address: wallet?.address,
         smartWalletAddress,
         isReady,
@@ -126,7 +158,7 @@ export function useWallet() {
         sendTransaction,
         sendSmartTransaction,
         createWallet,
+        createAdditionalWallet,
         logout,
     };
 }
-

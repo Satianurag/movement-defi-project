@@ -4,7 +4,7 @@ import { Text } from '@/components/ui/text';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { View, Pressable } from 'react-native';
+import { View, Pressable, ScrollView, Modal } from 'react-native';
 import {
     UserIcon,
     WalletIcon,
@@ -14,30 +14,27 @@ import {
     LogInIcon,
     ShieldCheckIcon,
     LinkIcon,
-    MailIcon,
-    ArrowRightIcon,
+    DollarSignIcon,
+    KeyIcon,
+    ChevronRightIcon,
 } from 'lucide-react-native';
 import { Stack, router } from 'expo-router';
 import { useWallet } from '@/lib/useWallet';
-import { useLinkWithOAuth } from '@privy-io/expo';
-import { cn } from '@/lib/utils';
+import { usePrivy } from '@/lib/privy-hooks';
+import { FundWallet } from '@/components/wallet/FundWallet';
+import { ExportWallet } from '@/components/wallet/ExportWallet';
+import { LinkAccounts } from '@/components/account/LinkAccounts';
 import * as Clipboard from 'expo-clipboard';
 
 export default function ProfileScreen() {
-    const {
-        user,
-        isReady,
-        logout,
-        address: walletAddress,
-        smartWalletAddress,
-        isAuthenticated,
-        isSmartWalletReady
-    } = useWallet();
-    const { link } = useLinkWithOAuth();
+    const { user, isReady, logout, address: walletAddress, smartWalletAddress, isAuthenticated, isSmartWalletReady } = useWallet();
     const [copied, setCopied] = useState<string | null>(null);
+    const [showFundWallet, setShowFundWallet] = useState(false);
+    const [showExportWallet, setShowExportWallet] = useState(false);
+    const [showLinkAccounts, setShowLinkAccounts] = useState(false);
 
-    const linkedAccounts = useMemo(() => user?.linked_accounts || [], [user]);
-    const socialAccounts = linkedAccounts.filter(acc => ['google', 'apple', 'twitter', 'discord', 'github'].includes(acc.type));
+    const linkedAccounts = useMemo(() => (user as any)?.linked_accounts || [], [user]);
+    const linkedCount = linkedAccounts.length;
 
     const formatAddress = (address?: string) => {
         if (!address) return '';
@@ -75,9 +72,9 @@ export default function ProfileScreen() {
     return (
         <>
             <Stack.Screen options={{ title: 'Profile', headerShown: true }} />
-            <View className="flex-1 bg-background p-6">
-                <View className="items-center justify-center flex-1 gap-6">
-                    {/* Avatar */}
+            <ScrollView className="flex-1 bg-background">
+                <View className="p-6 gap-6">
+                    {/* Avatar & Status */}
                     <View className="items-center gap-3">
                         <View className="w-24 h-24 rounded-full bg-primary/10 items-center justify-center border-2 border-primary/20">
                             {isAuthenticated ? (
@@ -89,20 +86,14 @@ export default function ProfileScreen() {
 
                         {isAuthenticated ? (
                             <>
-                                <Text className="text-2xl font-bold text-foreground">
-                                    Connected
-                                </Text>
+                                <Text className="text-2xl font-bold text-foreground">Connected</Text>
                                 {(user as any)?.email?.address && (
-                                    <Text className="text-muted-foreground">
-                                        {(user as any).email.address}
-                                    </Text>
+                                    <Text className="text-muted-foreground">{(user as any).email.address}</Text>
                                 )}
                             </>
                         ) : (
                             <>
-                                <Text className="text-2xl font-bold text-foreground">
-                                    Not Connected
-                                </Text>
+                                <Text className="text-2xl font-bold text-foreground">Not Connected</Text>
                                 <Text className="text-muted-foreground text-center">
                                     Sign in to view your positions and earn rewards
                                 </Text>
@@ -112,7 +103,27 @@ export default function ProfileScreen() {
 
                     {/* Wallet Card */}
                     {isAuthenticated && walletAddress && (
-                        <View className="w-full gap-4">
+                        <>
+                            {/* Quick Actions */}
+                            <View className="flex-row gap-3">
+                                <Button
+                                    variant="default"
+                                    className="flex-1 h-14"
+                                    onPress={() => setShowFundWallet(true)}
+                                >
+                                    <DollarSignIcon size={18} className="text-primary-foreground mr-2" />
+                                    <Text className="font-semibold">Fund Wallet</Text>
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    className="flex-1 h-14"
+                                    onPress={() => setShowLinkAccounts(true)}
+                                >
+                                    <LinkIcon size={18} className="text-foreground mr-2" />
+                                    <Text className="font-semibold">Link Accounts</Text>
+                                </Button>
+                            </View>
+
                             {/* Embedded Wallet */}
                             <Card className="w-full">
                                 <CardHeader className="flex-row items-center justify-between pb-2">
@@ -132,9 +143,7 @@ export default function ProfileScreen() {
                                             <Text className="text-lg font-mono font-semibold text-foreground">
                                                 {formatAddress(walletAddress)}
                                             </Text>
-                                            <Text className="text-xs text-muted-foreground">
-                                                Signer Account
-                                            </Text>
+                                            <Text className="text-xs text-muted-foreground">Signer Account</Text>
                                         </View>
                                         <Button
                                             variant="ghost"
@@ -148,10 +157,21 @@ export default function ProfileScreen() {
                                             )}
                                         </Button>
                                     </View>
+                                    <Separator />
+                                    <Pressable
+                                        onPress={() => setShowExportWallet(true)}
+                                        className="flex-row items-center justify-between py-2 active:opacity-70"
+                                    >
+                                        <View className="flex-row items-center gap-2">
+                                            <KeyIcon size={16} className="text-muted-foreground" />
+                                            <Text className="text-sm text-muted-foreground">Export Private Key</Text>
+                                        </View>
+                                        <ChevronRightIcon size={16} className="text-muted-foreground" />
+                                    </Pressable>
                                 </CardContent>
                             </Card>
 
-                            {/* Smart Wallet (AA) */}
+                            {/* Smart Wallet */}
                             {smartWalletAddress && (
                                 <Card className="w-full bg-primary/5 border-primary/20">
                                     <CardHeader className="flex-row items-center justify-between pb-2">
@@ -176,9 +196,7 @@ export default function ProfileScreen() {
                                                 <Text className="text-lg font-mono font-semibold text-foreground">
                                                     {formatAddress(smartWalletAddress)}
                                                 </Text>
-                                                <Text className="text-xs text-muted-foreground">
-                                                    Movement Smart Account
-                                                </Text>
+                                                <Text className="text-xs text-muted-foreground">Movement Smart Account</Text>
                                             </View>
                                             <Button
                                                 variant="ghost"
@@ -196,76 +214,107 @@ export default function ProfileScreen() {
                                 </Card>
                             )}
 
-                            {/* Linked Accounts */}
-                            <View className="w-full mt-2">
-                                <Text className="text-xs text-muted-foreground font-bold uppercase tracking-widest mb-3 ml-1">
-                                    Linked Accounts
-                                </Text>
-                                <Card className="overflow-hidden">
-                                    {socialAccounts.map((acc, i) => (
-                                        <React.Fragment key={acc.type}>
-                                            {i > 0 && <Separator />}
-                                            <View className="flex-row items-center justify-between p-4">
-                                                <View className="flex-row items-center gap-3">
-                                                    <View className="h-8 w-8 rounded-full bg-muted items-center justify-center">
-                                                        <UserIcon size={16} className="text-muted-foreground" />
-                                                    </View>
-                                                    <View>
-                                                        <Text className="text-sm font-medium text-foreground capitalize">
-                                                            {acc.type}
-                                                        </Text>
-                                                        <Text className="text-xs text-muted-foreground">
-                                                            Linked
-                                                        </Text>
-                                                    </View>
-                                                </View>
-                                                <CheckIcon size={16} className="text-emerald-500" />
+                            {/* Linked Accounts Summary */}
+                            <Pressable onPress={() => setShowLinkAccounts(true)}>
+                                <Card className="w-full">
+                                    <CardContent className="flex-row items-center justify-between py-4">
+                                        <View className="flex-row items-center gap-3">
+                                            <View className="h-10 w-10 rounded-full bg-primary/10 items-center justify-center">
+                                                <LinkIcon size={20} className="text-primary" />
                                             </View>
-                                        </React.Fragment>
-                                    ))}
-
-                                    {!socialAccounts.some((a: any) => a.type === 'google') && (
-                                        <>
-                                            {socialAccounts.length > 0 && <Separator />}
-                                            <Pressable
-                                                onPress={() => link({ provider: 'google' })}
-                                                className="flex-row items-center justify-between p-4 active:bg-muted"
-                                            >
-                                                <View className="flex-row items-center gap-3">
-                                                    <View className="h-8 w-8 rounded-full bg-muted items-center justify-center">
-                                                        <LinkIcon size={16} className="text-muted-foreground" />
-                                                    </View>
-                                                    <Text className="text-sm font-medium text-foreground">Link Google</Text>
-                                                </View>
-                                                <ArrowRightIcon size={16} className="text-muted-foreground" />
-                                            </Pressable>
-                                        </>
-                                    )}
+                                            <View>
+                                                <Text className="font-semibold text-foreground">Linked Accounts</Text>
+                                                <Text className="text-xs text-muted-foreground">
+                                                    {linkedCount} account{linkedCount !== 1 ? 's' : ''} connected
+                                                </Text>
+                                            </View>
+                                        </View>
+                                        <ChevronRightIcon size={20} className="text-muted-foreground" />
+                                    </CardContent>
                                 </Card>
-                            </View>
-                        </View>
+                            </Pressable>
+                        </>
                     )}
 
                     {/* Actions */}
-                    <View className="w-full gap-3 mt-4">
+                    <View className="gap-3">
                         {isAuthenticated ? (
                             <Button
                                 variant="destructive"
                                 className="w-full"
                                 onPress={handleLogout}
                             >
-                                <LogOutIcon size={18} className="text-white" />
+                                <LogOutIcon size={18} className="text-white mr-2" />
                                 <Text className="text-white font-semibold">Sign Out</Text>
                             </Button>
                         ) : (
                             <Button className="w-full h-14" onPress={handleSignIn}>
-                                <LogInIcon size={18} className="text-primary-foreground" />
+                                <LogInIcon size={18} className="text-primary-foreground mr-2" />
                                 <Text className="font-semibold">Sign In</Text>
                             </Button>
                         )}
                     </View>
                 </View>
-            </View>
+            </ScrollView>
+
+            {/* Fund Wallet Modal */}
+            <Modal
+                visible={showFundWallet}
+                animationType="slide"
+                presentationStyle="pageSheet"
+                onRequestClose={() => setShowFundWallet(false)}
+            >
+                <View className="flex-1 bg-background p-6">
+                    <View className="flex-row justify-end mb-4">
+                        <Button variant="ghost" onPress={() => setShowFundWallet(false)}>
+                            <Text>Close</Text>
+                        </Button>
+                    </View>
+                    <FundWallet
+                        onSuccess={() => setShowFundWallet(false)}
+                        onCancel={() => setShowFundWallet(false)}
+                    />
+                </View>
+            </Modal>
+
+            {/* Export Wallet Modal */}
+            <Modal
+                visible={showExportWallet}
+                animationType="slide"
+                presentationStyle="pageSheet"
+                onRequestClose={() => setShowExportWallet(false)}
+            >
+                <View className="flex-1 bg-background p-6">
+                    <View className="flex-row justify-end mb-4">
+                        <Button variant="ghost" onPress={() => setShowExportWallet(false)}>
+                            <Text>Close</Text>
+                        </Button>
+                    </View>
+                    <ExportWallet
+                        onExported={() => { }}
+                        onCancel={() => setShowExportWallet(false)}
+                    />
+                </View>
+            </Modal>
+
+            {/* Link Accounts Modal */}
+            <Modal
+                visible={showLinkAccounts}
+                animationType="slide"
+                presentationStyle="pageSheet"
+                onRequestClose={() => setShowLinkAccounts(false)}
+            >
+                <View className="flex-1 bg-background p-6">
+                    <View className="flex-row justify-end mb-4">
+                        <Button variant="ghost" onPress={() => setShowLinkAccounts(false)}>
+                            <Text>Close</Text>
+                        </Button>
+                    </View>
+                    <ScrollView>
+                        <LinkAccounts onAccountLinked={() => { }} />
+                    </ScrollView>
+                </View>
+            </Modal>
         </>
     );
 }

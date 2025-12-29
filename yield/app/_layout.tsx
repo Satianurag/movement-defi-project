@@ -1,9 +1,9 @@
 import '@/global.css';
 
 import { NAV_THEME } from '@/lib/theme';
-import { ThemeProvider } from '@react-navigation/native';
+import { Theme, ThemeProvider } from '@react-navigation/native';
 import { PortalHost } from '@rn-primitives/portal';
-import { Stack } from 'expo-router';
+import { Slot, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import { PrivyProvider } from '@privy-io/expo';
@@ -45,9 +45,25 @@ const movementTestnet = {
   testnet: true,
 };
 
-export default function RootLayout() {
+// Separate navigation component to ensure proper context
+function NavigationLayout() {
   const { colorScheme } = useColorScheme();
 
+  return (
+    <ThemeProvider value={NAV_THEME[colorScheme ?? 'light'] as Theme}>
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+      <Stack>
+        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+        <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+      </Stack>
+      <PortalHost />
+    </ThemeProvider>
+  );
+}
+
+export default function RootLayout() {
   return (
     <PrivyProvider
       appId={PRIVY_APP_ID}
@@ -55,18 +71,8 @@ export default function RootLayout() {
       supportedChains={[movementTestnet]}
     >
       <SmartWalletsProvider>
-        <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
-          <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-          <Stack>
-            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-            <Stack.Screen name="sign-in" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-          </Stack>
-          <PortalHost />
-        </ThemeProvider>
+        <NavigationLayout />
       </SmartWalletsProvider>
     </PrivyProvider>
   );
 }
-
