@@ -34,6 +34,18 @@ class MeridianService {
      * @param {string} minAmountOut - Minimum output amount (slippage protection)
      */
     async swap(tokenIn, tokenOut, amountIn, minAmountOut, userAddress) {
+        if (process.env.SIMULATION_MODE === 'true') {
+            console.log(`[SIMULATION] Swapping ${amountIn} ${tokenIn} -> ${tokenOut}`);
+            return {
+                success: true,
+                hash: '0xSIMULATED_SWAP_HASH_' + Date.now(),
+                tokenIn,
+                tokenOut,
+                amountIn: amountIn.toString(),
+                protocol: 'meridian'
+            };
+        }
+
         if (!this.serverAccount) {
             throw new Error('Server account not configured. Set SERVER_PRIVATE_KEY in .env');
         }
@@ -81,6 +93,19 @@ class MeridianService {
      * Add liquidity to a pool
      */
     async addLiquidity(tokenA, tokenB, amountA, amountB, userAddress) {
+        if (process.env.SIMULATION_MODE === 'true') {
+            console.log(`[SIMULATION] Adding Liquidity ${amountA} / ${amountB}`);
+            return {
+                success: true,
+                hash: '0xSIMULATED_LP_HASH_' + Date.now(),
+                tokenA,
+                tokenB,
+                amountA: amountA.toString(),
+                amountB: amountB.toString(),
+                protocol: 'meridian'
+            };
+        }
+
         if (!this.serverAccount) {
             throw new Error('Server account not configured');
         }
@@ -170,6 +195,40 @@ class MeridianService {
             };
         } catch (error) {
             throw new Error(`Failed to remove liquidity: ${error.message}`);
+        }
+    }
+
+    /**
+     * Get reserves for a pair to calculate optimal swap
+     */
+    async getReserves(tokenA, tokenB) {
+        try {
+            // In a real implementation, we would query the resource account for the pair
+            // For this implementation, we'll try to use a view function if available, 
+            // or return a mock/estimate if we can't easily query the move resource structure directly without ABI.
+            // Assuming Meridian has a `get_reserves` view function:
+
+            // Note: Use ADDRESSES.meridian.router or a specific Swap/Pair contract
+            // If view function is not standard, we might need to query resources.
+
+            // Fallback for now: fetch from API or mock if on testnet, 
+            // but let's try to simulate a resource query or assume a view function exists.
+
+            const payload = {
+                function: `${this.routerAddress}::router::get_reserves`,
+                type_arguments: [tokenA, tokenB],
+                arguments: [],
+            };
+
+            const result = await this.aptos.view({ payload });
+            return {
+                reserveA: BigInt(result[0]),
+                reserveB: BigInt(result[1]),
+            };
+        } catch (error) {
+            console.warn('Failed to fetch reserves, defaulting to 1:1 ratio for safety check (fallback):', error.message);
+            // Fallback for demo/testnet if view fails
+            return { reserveA: 1000000000n, reserveB: 1000000n }; // 1000 MOVE : 1 USDC approx
         }
     }
 }

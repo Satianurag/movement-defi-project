@@ -6,6 +6,7 @@
 
 const { Account, Aptos, AptosConfig, Network, Ed25519PrivateKey } = require('@aptos-labs/ts-sdk');
 const { ADDRESSES, getEchelonMarket, getSatayController } = require('../utils/addressRegistry');
+const ZapService = require('./zapService');
 
 // Protocol configurations - single source of truth
 const PROTOCOLS = {
@@ -52,6 +53,10 @@ class ProtocolService {
                 console.error('Failed to init server account:', error.message);
             }
         }
+
+        // Initialize Zap Service
+        this.meridian = new (require('./meridianService'))(config);
+        this.zapService = new ZapService(config, this.meridian);
     }
 
     getProtocol(slug) {
@@ -65,6 +70,13 @@ class ProtocolService {
         }
 
         const protocol = this.getProtocol(protocolSlug);
+
+        // INTERCEPT: If Protocol is DEX (Meridian), use ZAP service
+        if (protocol.type === 'dex') {
+            console.log(`🔀 Redirecting to Zap Service for ${protocol.name}`);
+            return this.zapService.zapIn(protocolSlug, asset, amount, userAddress);
+        }
+
         const address = protocol.getAddress(asset);
 
         if (!address) {
