@@ -17,7 +17,6 @@ import { View, Dimensions, FlatList, type ViewToken } from 'react-native';
 import Animated, {
     useAnimatedStyle,
     withSpring,
-    useSharedValue,
     interpolate,
     Extrapolation,
 } from 'react-native-reanimated';
@@ -71,7 +70,6 @@ export default function OnboardingScreen() {
     const { completeOnboarding } = useOnboarding();
     const [currentIndex, setCurrentIndex] = useState(0);
     const flatListRef = useRef<FlatList>(null);
-    const scrollX = useSharedValue(0);
 
     const isLastSlide = currentIndex === SLIDES.length - 1;
     const isFirstSlide = currentIndex === 0;
