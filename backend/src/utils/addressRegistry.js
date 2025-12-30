@@ -32,9 +32,31 @@ const ADDRESSES = {
         },
     },
 
-    // Meridian (DEX)
+    // Meridian (DEX + Farming + Lending + USDM) - By Thala Labs
+    // API: https://app.meridian.money/api/liquidity-pools
     meridian: {
+        // VERIFIED - Main entry point for swaps and liquidity
         router: '0xc36ceb6d7b137cea4897d4bc82d8e4d8be5f964c4217dbc96b0ba03cc64070f4',
+
+        // Farm/MasterChef - Module: ::farm::
+        // STATUS: Deployment Scheduled (not yet live on mainnet)
+        // Search Movement Explorer for accounts with deployed ::farm:: module
+        farm: '0xc36ceb6d7b137cea4897d4bc82d8e4d8be5f964c4217dbc96b0ba03cc64070f4', // Uses router address until farm module deployed
+
+        // USDM Stablecoin - Module: ::trove::
+        // STATUS: Partial/Scaling Phase
+        usdm: {
+            // Trove module handles CDP (Collateralized Debt Position) for minting
+            mint: '0xc36ceb6d7b137cea4897d4bc82d8e4d8be5f964c4217dbc96b0ba03cc64070f4::trove',
+            stabilityPool: '0xc36ceb6d7b137cea4897d4bc82d8e4d8be5f964c4217dbc96b0ba03cc64070f4::stability_pool',
+        },
+
+        // MST Token Staking - Module: ::mst_staking::
+        // STATUS: Live with validator integration
+        mstStaking: '0xc36ceb6d7b137cea4897d4bc82d8e4d8be5f964c4217dbc96b0ba03cc64070f4::mst_staking',
+
+        // Meridian Lend (separate from swap)
+        lend: '0xc36ceb6d7b137cea4897d4bc82d8e4d8be5f964c4217dbc96b0ba03cc64070f4::lending',
     },
 
     // Token Addresses (Fungible Assets)
