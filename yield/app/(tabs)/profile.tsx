@@ -17,6 +17,8 @@ import {
     DollarSignIcon,
     KeyIcon,
     ChevronRightIcon,
+    LayersIcon,
+    TrendingUpIcon
 } from 'lucide-react-native';
 import { Stack, router } from 'expo-router';
 import { useWallet } from '@/lib/useWallet';
@@ -25,6 +27,7 @@ import { FundWallet } from '@/components/wallet/FundWallet';
 import { ExportWallet } from '@/components/wallet/ExportWallet';
 import { LinkAccounts } from '@/components/account/LinkAccounts';
 import * as Clipboard from 'expo-clipboard';
+import { PortfolioSection } from '@/components/profile/PortfolioSection';
 
 export default function ProfileScreen() {
     const { user, isReady, logout, address: walletAddress, smartWalletAddress, isAuthenticated, isSmartWalletReady } = useWallet();
@@ -254,6 +257,9 @@ export default function ProfileScreen() {
                             </Button>
                         )}
                     </View>
+
+                    {/* --- PORTFOLIO DASHBOARD --- */}
+                    {isAuthenticated && <PortfolioSection />}
                 </View>
             </ScrollView>
 

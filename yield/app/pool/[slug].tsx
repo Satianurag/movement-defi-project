@@ -30,7 +30,8 @@ import {
 } from 'lucide-react-native';
 import { PoolData } from '@/components/PoolCard';
 import { useWallet } from '@/lib/useWallet';
-import { useProtocol } from '@/lib/useProtocol';
+import { useProtocol, TransactionResult } from '@/lib/useProtocol';
+import { ZapTransactionModal, ZapStep } from '@/components/ZapTransactionModal';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000';
 
@@ -89,6 +90,11 @@ export default function PoolDetailScreen() {
     const [totalTVL, setTotalTVL] = useState(0);
     const [activeTab, setActiveTab] = useState('overview');
     const [isDepositing, setIsDepositing] = useState(false);
+    const [zapStep, setZapStep] = useState<ZapStep>('initiating');
+    const [zapTxHash, setZapTxHash] = useState<string | undefined>(undefined);
+    const [zapError, setZapError] = useState<string | undefined>(undefined);
+    const [showZapModal, setShowZapModal] = useState(false);
+
     const [isWithdrawing, setIsWithdrawing] = useState(false);
 
     // Wallet hook
@@ -155,33 +161,49 @@ export default function PoolDetailScreen() {
             return;
         }
 
+        // Show Modal & Start
+        setShowZapModal(true);
+        setZapStep('initiating');
+        setZapError(undefined);
         setIsDepositing(true);
+
         try {
             const targetAddress = smartWalletAddress || address;
 
             if (!targetAddress) {
                 await createWallet();
-                Alert.alert('Wallet Created', 'Please try depositing again.');
-                setIsDepositing(false);
+                setZapStep('error');
+                setZapError('Wallet created. Please try again.');
                 return;
             }
 
+            // Simulate "Optimizing" step if it's a DEX (visual feedback)
+            if (pool?.category === 'DEX' || pool?.slug?.includes('meridian')) {
+                setZapStep('optimizing');
+                await new Promise(r => setTimeout(r, 1500)); // Visual delay for effect
+
+                setZapStep('swapping');
+                await new Promise(r => setTimeout(r, 1500)); // Visual delay for effect
+            }
+
+            // Proceed to execution (Backend handles the rest, but we show "Adding Liq" state)
+            setZapStep('adding_liquidity');
+
             const asset = mapPoolToAsset(pool?.name || '');
-            const amount = '1000000000000000000';
+            const amount = '1000000000000000000'; // 1 MOVE
 
             const result = await deposit(pool?.slug || 'echelon', asset, amount, targetAddress);
 
             if (result.success) {
-                Alert.alert(
-                    'Deposit Successful',
-                    `Deposited to ${result.protocol}!\nHash: ${result.hash?.slice(0, 10)}...`
-                );
+                setZapStep('success');
+                setZapTxHash(result.hash);
             } else {
                 throw new Error(result.error || 'Deposit failed');
             }
         } catch (error) {
             console.error('Deposit error:', error);
-            Alert.alert('Deposit Failed', error instanceof Error ? error.message : 'Unknown error');
+            setZapStep('error');
+            setZapError(error instanceof Error ? error.message : 'Unknown error');
         } finally {
             setIsDepositing(false);
         }
@@ -596,6 +618,15 @@ export default function PoolDetailScreen() {
                     </Button>
                 </View>
             </ScrollView>
+
+            <ZapTransactionModal
+                visible={showZapModal}
+                step={zapStep}
+                protocolName={pool.name}
+                txHash={zapTxHash}
+                error={zapError}
+                onClose={() => setShowZapModal(false)}
+            />
         </>
     );
 }
