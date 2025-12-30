@@ -70,6 +70,16 @@ const resolveRequestWithPackageExports = (context, moduleName, platform) => {
         return ctx.resolveRequest(ctx, moduleName, platform);
     }
 
+    // Disable package exports for @noble/hashes to silence resolution warnings
+    // (It falls back to file-based resolution anyway, this just makes it explicit)
+    if (moduleName.startsWith('@noble/hashes')) {
+        const ctx = {
+            ...context,
+            unstable_enablePackageExports: false,
+        };
+        return ctx.resolveRequest(ctx, moduleName, platform);
+    }
+
     // Enable package exports for Privy packages
     if (moduleName.startsWith('@privy-io/')) {
         const ctx = {

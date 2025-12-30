@@ -464,6 +464,68 @@ app.post('/api/meridian/remove-liquidity', async (req, res) => {
     }
 });
 
+// ============================================
+// SWAP AGGREGATOR ENDPOINTS (World-Class Swap)
+// ============================================
+
+const SwapService = require('./src/services/swapService');
+// Initialize SwapService with the existing MeridianService instance
+const swapService = new SwapService({}, meridian);
+
+// Get a quote (Aggregator Logic)
+app.get('/api/swap/quote', async (req, res) => {
+    try {
+        const { tokenIn, tokenOut, amountIn } = req.query;
+
+        if (!tokenIn || !tokenOut || !amountIn) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing required parameters: tokenIn, tokenOut, amountIn'
+            });
+        }
+
+        const quote = await swapService.getQuote(tokenIn, tokenOut, amountIn);
+        res.json({ success: true, data: quote });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Execute Swap
+app.post('/api/swap/execute', async (req, res) => {
+    try {
+        const { tokenIn, tokenOut, amountIn, minAmountOut, userAddress } = req.body;
+
+        if (!tokenIn || !tokenOut || !amountIn || !userAddress) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing required fields'
+            });
+        }
+
+        const result = await swapService.executeSwap(
+            tokenIn,
+            tokenOut,
+            amountIn,
+            minAmountOut || '0',
+            userAddress
+        );
+        res.json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Get Supported Tokens
+app.get('/api/swap/tokens', async (req, res) => {
+    try {
+        const tokens = await swapService.getSupportedTokens();
+        res.json({ success: true, data: tokens });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Start server
 app.listen(PORT, () => {
     console.log(`🚀 Movement DeFi Aggregator running on http://localhost:${PORT}`);

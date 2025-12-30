@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { CompassIcon, UserIcon, SettingsIcon } from 'lucide-react-native';
+import { CompassIcon, UserIcon, SettingsIcon, ArrowLeftRightIcon } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { THEME } from '@/lib/theme';
 
@@ -32,6 +32,15 @@ export default function TabLayout() {
                     title: 'Explore',
                     tabBarIcon: ({ color, size }) => (
                         <CompassIcon size={size} color={color} strokeWidth={2} />
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="swap"
+                options={{
+                    title: 'Swap',
+                    tabBarIcon: ({ color, size }) => (
+                        <ArrowLeftRightIcon size={size} color={color} strokeWidth={2} />
                     ),
                 }}
             />
