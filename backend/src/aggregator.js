@@ -185,7 +185,27 @@ class MovementDefiAggregator {
 
             const totalValueUSD = enrichedBalances.reduce((sum, bal) => sum + bal.valueUSD, 0);
 
+            // Format positions for frontend
+            const formattedPositions = enrichedBalances.map((bal, index) => ({
+                id: `pos-${index}`,
+                name: bal.asset === 'MOVE' ? 'Movement Token' : `${bal.asset} Position`,
+                protocol: this.identifyProtocol(bal.assetType) === 'satay' ? 'Satay Finance' :
+                    this.identifyProtocol(bal.assetType) === 'echelon' ? 'Echelon Market' :
+                        this.identifyProtocol(bal.assetType) === 'meridian' ? 'Meridian' : 'Wallet',
+                strategy: this.identifyProtocol(bal.assetType) === 'satay' ? 'Yield Strategy' :
+                    this.identifyProtocol(bal.assetType) === 'echelon' ? 'Lending' :
+                        this.identifyProtocol(bal.assetType) === 'meridian' ? 'Liquidity Pool' : 'Holding',
+                amount: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(bal.valueUSD),
+                rawAmount: bal.valueUSD,
+                apy: 'N/A', // TODO: Map real APY from protocol metrics here
+                tokenSymbol: bal.asset
+            }));
+
             return {
+                totalNetWorth: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalValueUSD),
+                netWorthChange: '+0.00% (7d)', // TODO: Calculate change from historical data
+                positions: formattedPositions, // New Frontend structure
+                // Keep original data for backward compatibility
                 wallet: walletAddress,
                 balances: enrichedBalances,
                 totalAssets: enrichedBalances.length,

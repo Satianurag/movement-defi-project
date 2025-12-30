@@ -464,6 +464,24 @@ app.post('/api/meridian/remove-liquidity', async (req, res) => {
     }
 });
 
+
+// Get Deposit Payload (For Smart Wallet Signing)
+app.post('/api/protocol/deposit/payload', async (req, res) => {
+    try {
+        const { protocol, asset, amount, userAddress } = req.body;
+        const payload = await protocolManager.getDepositPayload(protocol, asset, amount, userAddress);
+        res.json({
+            success: true,
+            data: payload
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // ============================================
 // SWAP AGGREGATOR ENDPOINTS (World-Class Swap)
 // ============================================

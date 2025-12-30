@@ -5,6 +5,7 @@
 
 import { useState, useCallback } from 'react';
 import { Platform } from 'react-native';
+import { useWallet } from './useWallet';
 
 const getApiBaseUrl = () => {
     if (process.env.EXPO_PUBLIC_API_URL) {
@@ -37,6 +38,7 @@ export interface TransactionResult {
 export function useProtocol() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { sendSmartTransaction, smartWalletAddress } = useWallet();
 
     const getProtocols = useCallback(async (): Promise<Protocol[]> => {
         try {
@@ -58,25 +60,64 @@ export function useProtocol() {
         setError(null);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/protocol/deposit`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ protocol, asset, amount, userAddress }),
-            });
+            // STRATEGY CHECK: Is User using Smart Wallet?
+            const isSmartWallet = userAddress && smartWalletAddress && userAddress.toLowerCase() === smartWalletAddress.toLowerCase();
 
-            const json = await response.json();
+            if (isSmartWallet) {
+                // 1. Fetch Payload
+                const response = await fetch(`${API_BASE_URL}/api/protocol/deposit/payload`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ protocol, asset, amount, userAddress }),
+                });
 
-            if (!json.success) {
-                throw new Error(json.error || 'Deposit failed');
+                const json = await response.json();
+                if (!json.success) throw new Error(json.error || 'Failed to generate payload');
+
+                const payload = json.data;
+
+                // 2. Sign & Submit via Smart Wallet
+                // NOTE: Move payloads need to be encoded properly.
+                // Assuming `sendSmartTransaction` handles the Move structure or hex.
+                const hash = await sendSmartTransaction({
+                    to: payload.function, // For Move, 'to' is often the function target
+                    value: '0',
+                    data: JSON.stringify({
+                        function: payload.function,
+                        type_arguments: payload.typeArguments,
+                        arguments: payload.functionArguments
+                    }) // Passing JSON as data for custom adapter handling
+                });
+
+                return {
+                    success: true,
+                    hash,
+                    protocol: protocol,
+                    asset,
+                    amount,
+                };
+            } else {
+                // Fallback to Old Custodial Method (for now)
+                const response = await fetch(`${API_BASE_URL}/api/protocol/deposit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ protocol, asset, amount, userAddress }),
+                });
+
+                const json = await response.json();
+
+                if (!json.success) {
+                    throw new Error(json.error || 'Deposit failed');
+                }
+
+                return {
+                    success: true,
+                    hash: json.data.hash,
+                    protocol: json.data.protocol,
+                    asset: json.data.asset,
+                    amount: json.data.amount,
+                };
             }
-
-            return {
-                success: true,
-                hash: json.data.hash,
-                protocol: json.data.protocol,
-                asset: json.data.asset,
-                amount: json.data.amount,
-            };
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Deposit failed';
             setError(errorMessage);
@@ -84,7 +125,7 @@ export function useProtocol() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [smartWalletAddress, sendSmartTransaction]);
 
     const withdraw = useCallback(async (
         protocol: string,
