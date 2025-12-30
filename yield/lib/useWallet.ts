@@ -150,6 +150,7 @@ export function useWallet() {
         isAuthenticated,
         isWalletReady,
         isSmartWalletReady: !!smartWalletClient && !!smartWalletAddress,
+        isGasSponsorshipReady: !!smartWalletClient, // Gas sponsorship via Privy dashboard
 
         // Methods
         getAddress,
