@@ -25,9 +25,12 @@ import {
     ActivityIcon,
     LoaderIcon,
     CheckCircle2Icon,
+    ArrowDownIcon,
+    ArrowUpIcon,
 } from 'lucide-react-native';
 import { PoolData } from '@/components/PoolCard';
 import { useWallet } from '@/lib/useWallet';
+import { useProtocol } from '@/lib/useProtocol';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000';
 
@@ -86,6 +89,7 @@ export default function PoolDetailScreen() {
     const [totalTVL, setTotalTVL] = useState(0);
     const [activeTab, setActiveTab] = useState('overview');
     const [isDepositing, setIsDepositing] = useState(false);
+    const [isWithdrawing, setIsWithdrawing] = useState(false);
 
     // Wallet hook
     const {
@@ -99,8 +103,12 @@ export default function PoolDetailScreen() {
         sendTransaction
     } = useWallet();
 
+    // Protocol integration (routes to correct protocol by slug)
+    const { deposit, withdraw, isLoading: protocolLoading } = useProtocol();
+
     // Initialize from params
     useEffect(() => {
+
         const tvlNum = parseFloat(tvl || '0');
         setPool({
             name: name || 'Unknown Protocol',
@@ -149,49 +157,82 @@ export default function PoolDetailScreen() {
 
         setIsDepositing(true);
         try {
-            // Determine which wallet to use
             const targetAddress = smartWalletAddress || address;
 
             if (!targetAddress) {
-                // If authenticated but no wallet, try to create one
                 await createWallet();
                 Alert.alert('Wallet Created', 'Please try depositing again.');
                 setIsDepositing(false);
                 return;
             }
 
-            // For Hackathon Demo: Send a self-transfer of 0.000001 MOVE to prove network interaction
-            // In a real app, this would call a Vault contract
-            const value = '1000000000000'; // 0.000001 MOVE (18 decimal places)
+            const asset = mapPoolToAsset(pool?.name || '');
+            const amount = '1000000000000000000';
 
-            let txHash;
-            if (isSmartWalletReady) {
-                console.log('Sending via Smart Wallet...');
-                txHash = await sendSmartTransaction({
-                    to: targetAddress,
-                    value: value,
-                    data: '0x'
-                });
+            const result = await deposit(pool?.slug || 'echelon', asset, amount, targetAddress);
+
+            if (result.success) {
+                Alert.alert(
+                    'Deposit Successful',
+                    `Deposited to ${result.protocol}!\nHash: ${result.hash?.slice(0, 10)}...`
+                );
             } else {
-                console.log('Sending via EOA...');
-                txHash = await sendTransaction({
-                    to: targetAddress,
-                    value: value,
-                    data: '0x'
-                });
+                throw new Error(result.error || 'Deposit failed');
             }
-
-            Alert.alert(
-                'Deposit Initiated',
-                `Transaction sent successfully!\nHash: ${txHash.slice(0, 10)}...`
-            );
-
         } catch (error) {
             console.error('Deposit error:', error);
             Alert.alert('Deposit Failed', error instanceof Error ? error.message : 'Unknown error');
         } finally {
             setIsDepositing(false);
         }
+    };
+
+    const handleWithdraw = async () => {
+        if (!isReady) return;
+
+        if (!isAuthenticated) {
+            router.push('/sign-in');
+            return;
+        }
+
+        setIsWithdrawing(true);
+        try {
+            const targetAddress = smartWalletAddress || address;
+
+            if (!targetAddress) {
+                Alert.alert('No Wallet', 'Please create a wallet first.');
+                setIsWithdrawing(false);
+                return;
+            }
+
+            const asset = mapPoolToAsset(pool?.name || '');
+            const amount = '1000000000000000000';
+
+            const result = await withdraw(pool?.slug || 'echelon', asset, amount, targetAddress);
+
+            if (result.success) {
+                Alert.alert(
+                    'Withdraw Successful',
+                    `Withdrawn from ${result.protocol}!\nHash: ${result.hash?.slice(0, 10)}...`
+                );
+            } else {
+                throw new Error(result.error || 'Withdraw failed');
+            }
+        } catch (error) {
+            console.error('Withdraw error:', error);
+            Alert.alert('Withdraw Failed', error instanceof Error ? error.message : 'Unknown error');
+        } finally {
+            setIsWithdrawing(false);
+        }
+    };
+
+    const mapPoolToAsset = (name: string): string => {
+        const nameLower = name.toLowerCase();
+        if (nameLower.includes('usdc')) return 'USDC';
+        if (nameLower.includes('usdt')) return 'USDT';
+        if (nameLower.includes('eth') || nameLower.includes('weth')) return 'wETH';
+        if (nameLower.includes('btc') || nameLower.includes('wbtc')) return 'wBTC';
+        return 'MOVE';
     };
 
     if (!pool) {
@@ -516,22 +557,38 @@ export default function PoolDetailScreen() {
 
                 {/* Action Buttons */}
                 <View className="px-6 mt-6 gap-3">
-                    <Button
-                        className="w-full h-14"
-                        onPress={handleDeposit}
-                        disabled={isDepositing || !isReady}
-                    >
-                        {isDepositing ? (
-                            <LoaderIcon size={20} className="text-primary-foreground animate-spin" />
-                        ) : (
-                            <>
-                                <WalletIcon size={18} className="text-primary-foreground" />
-                                <Text className="font-semibold ml-2">
-                                    {isSmartWalletReady ? 'Deposit (Smart Wallet)' : 'Deposit'}
-                                </Text>
-                            </>
-                        )}
-                    </Button>
+                    <View className="flex-row gap-3">
+                        <Button
+                            className="flex-1 h-14"
+                            onPress={handleDeposit}
+                            disabled={isDepositing || isWithdrawing || !isReady}
+                        >
+                            {isDepositing ? (
+                                <LoaderIcon size={20} className="text-primary-foreground animate-spin" />
+                            ) : (
+                                <>
+                                    <ArrowDownIcon size={18} className="text-primary-foreground" />
+                                    <Text className="font-semibold ml-2">Deposit</Text>
+                                </>
+                            )}
+                        </Button>
+
+                        <Button
+                            variant="secondary"
+                            className="flex-1 h-14"
+                            onPress={handleWithdraw}
+                            disabled={isDepositing || isWithdrawing || !isReady}
+                        >
+                            {isWithdrawing ? (
+                                <LoaderIcon size={20} className="text-secondary-foreground animate-spin" />
+                            ) : (
+                                <>
+                                    <ArrowUpIcon size={18} className="text-secondary-foreground" />
+                                    <Text className="font-semibold ml-2">Withdraw</Text>
+                                </>
+                            )}
+                        </Button>
+                    </View>
 
                     <Button variant="outline" className="w-full" onPress={handleOpenProtocol}>
                         <ExternalLinkIcon size={16} className="text-foreground" />

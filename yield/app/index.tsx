@@ -28,8 +28,9 @@ export default function Screen() {
 
   // New user → show onboarding
   if (!hasCompletedOnboarding) {
-    return <Redirect href="/onboarding" />;
+    return <Redirect href={'/onboarding' as any} />;
   }
+
 
   // Completed onboarding but not logged in → sign in
   if (!user) {
