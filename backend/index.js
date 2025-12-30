@@ -125,7 +125,101 @@ app.get('/api/defi/metrics', async (req, res) => {
 });
 
 // ============================================
+// SATAY FINANCE ENDPOINTS (Real On-Chain Data)
+// ============================================
+
+// Get all Satay vaults with real APY
+app.get('/api/satay/vaults', async (req, res) => {
+    try {
+        const vaults = await aggregator.getSatayVaults();
+        res.json({
+            success: true,
+            data: vaults,
+            count: vaults.length,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Get specific vault by asset name
+app.get('/api/satay/vault/:asset', async (req, res) => {
+    try {
+        const { asset } = req.params;
+        const vault = await aggregator.getSatayVaultByAsset(asset);
+
+        if (!vault) {
+            return res.status(404).json({
+                success: false,
+                error: `No vault found for asset: ${asset}`
+            });
+        }
+
+        res.json({
+            success: true,
+            data: vault
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// ============================================
 // ECHELON LENDING PROTOCOL ENDPOINTS
+// ============================================
+
+// Get all Echelon markets (on-chain data)
+app.get('/api/echelon/markets-data', async (req, res) => {
+    try {
+        const markets = await aggregator.getEchelonMarkets();
+        res.json({
+            success: true,
+            data: markets,
+            count: markets.length,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Get specific Echelon market by asset
+app.get('/api/echelon/market-data/:asset', async (req, res) => {
+    try {
+        const { asset } = req.params;
+        const market = await aggregator.getEchelonMarket(asset);
+
+        if (!market) {
+            return res.status(404).json({
+                success: false,
+                error: `No market found for asset: ${asset}`
+            });
+        }
+
+        res.json({
+            success: true,
+            data: market
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// ============================================
+// ECHELON SERVICE ENDPOINTS (Transactions)
 // ============================================
 
 const EchelonService = require('./src/services/echelonService');
@@ -303,6 +397,73 @@ app.post('/api/protocol/withdraw', async (req, res) => {
     }
 });
 
+// ============================================
+// MERIDIAN DEX ENDPOINTS
+// ============================================
+
+const MeridianService = require('./src/services/meridianService');
+const meridian = new MeridianService({
+    rpcUrl: process.env.MOVEMENT_RPC_URL || 'https://mainnet.movementnetwork.xyz/v1',
+    serverPrivateKey: process.env.SERVER_PRIVATE_KEY,
+});
+
+// Swap tokens via Meridian
+app.post('/api/meridian/swap', async (req, res) => {
+    try {
+        const { tokenIn, tokenOut, amountIn, minAmountOut, userAddress } = req.body;
+
+        if (!tokenIn || !tokenOut || !amountIn) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing required fields: tokenIn, tokenOut, amountIn'
+            });
+        }
+
+        const result = await meridian.swap(tokenIn, tokenOut, amountIn, minAmountOut || '0', userAddress);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Add liquidity to Meridian pool
+app.post('/api/meridian/add-liquidity', async (req, res) => {
+    try {
+        const { tokenA, tokenB, amountA, amountB, userAddress } = req.body;
+
+        if (!tokenA || !tokenB || !amountA || !amountB) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing required fields: tokenA, tokenB, amountA, amountB'
+            });
+        }
+
+        const result = await meridian.addLiquidity(tokenA, tokenB, amountA, amountB, userAddress);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Remove liquidity from Meridian pool
+app.post('/api/meridian/remove-liquidity', async (req, res) => {
+    try {
+        const { tokenA, tokenB, lpTokenAmount, userAddress } = req.body;
+
+        if (!tokenA || !tokenB || !lpTokenAmount) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing required fields: tokenA, tokenB, lpTokenAmount'
+            });
+        }
+
+        const result = await meridian.removeLiquidity(tokenA, tokenB, lpTokenAmount, userAddress);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Start server
 app.listen(PORT, () => {
     console.log(`🚀 Movement DeFi Aggregator running on http://localhost:${PORT}`);
@@ -312,7 +473,17 @@ app.listen(PORT, () => {
     console.log(`   GET /api/defi/combined?wallet=<address> - Combined data`);
     console.log(`   GET /api/prices - Real-time token prices`);
     console.log(`   GET /api/defi/portfolio/:address - Portfolio with USD values`);
-    console.log(`   GET /api/defi/metrics - Protocol metrics with APY`);
+    console.log(`   GET /api/defi/metrics - Protocol metrics with REAL APY`);
+    console.log(`   --- Satay Finance (On-Chain) ---`);
+    console.log(`   GET /api/satay/vaults - All Satay vaults with real APY`);
+    console.log(`   GET /api/satay/vault/:asset - Vault by asset name`);
+    console.log(`   --- Echelon (On-Chain) ---`);
+    console.log(`   GET /api/echelon/markets-data - All Echelon markets`);
+    console.log(`   GET /api/echelon/market-data/:asset - Market by asset`);
+    console.log(`   --- Meridian DEX ---`);
+    console.log(`   POST /api/meridian/swap - Swap tokens`);
+    console.log(`   POST /api/meridian/add-liquidity - Add liquidity`);
+    console.log(`   POST /api/meridian/remove-liquidity - Remove liquidity`);
     console.log(`   --- Multi-Protocol ---`);
     console.log(`   GET  /api/protocol/list - All protocols`);
     console.log(`   POST /api/protocol/deposit - Deposit to any protocol`);

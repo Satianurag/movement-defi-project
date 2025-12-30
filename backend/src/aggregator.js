@@ -1,9 +1,26 @@
+/**
+ * Movement DeFi Aggregator - Rewritten
+ * 
+ * Data Sources:
+ * 1. DefiLlama - Protocol discovery, TVL, 7-day changes
+ * 2. Satay Finance - On-chain vaults, REAL APY from profit data
+ * 3. Echelon - On-chain lending market data
+ * 4. GraphQL Indexer - User balances
+ * 5. Price Oracle - Token prices (Pyth/CoinGecko)
+ * 
+ * Key Improvements:
+ * - Real APY from on-chain data (no more fake estimates)
+ * - Deduplication logic to prevent duplicate protocols
+ * - Merged data from multiple sources with source attribution
+ */
+
 const DefiLlamaFetcher = require('./fetchers/defiLlamaFetcher');
 const MovementRPCFetcher = require('./fetchers/movementRPCFetcher');
 const GraphQLIndexerFetcher = require('./fetchers/graphqlIndexerFetcher');
 const PriceOracleFetcher = require('./fetchers/priceOracleFetcher');
-const APYCalculator = require('./utils/apyCalculator');
-const VaultAPYFetcher = require('./fetchers/vaultAPYFetcher');
+const SatayFetcher = require('./fetchers/satayFetcher');
+const EchelonFetcher = require('./fetchers/echelonFetcher');
+const { ADDRESSES, getStrategyName } = require('./utils/addressRegistry');
 
 class MovementDefiAggregator {
     constructor(config) {
@@ -11,33 +28,23 @@ class MovementDefiAggregator {
         this.rpc = new MovementRPCFetcher(config.rpcUrl);
         this.indexer = new GraphQLIndexerFetcher(config.graphqlUrl);
         this.priceOracle = new PriceOracleFetcher();
-        this.apyFetcher = new VaultAPYFetcher(config.rpcUrl);
+        this.satay = new SatayFetcher(config.rpcUrl);
+        this.echelon = new EchelonFetcher(config.rpcUrl);
 
-        // Protocol addresses
-        this.addresses = {
-            canopy: {
-                router: '0x717b417949cd5bfa6dc02822eacb727d820de2741f6ea90bf16be6c0ed46ff4b',
-                vaults: '0xb10bd32b3979c9d04272c769d9ef52afbc6edc4bf03982a9e326b96ac25e7f2d'
-            },
-            echelon: {
-                market: '0x568f96c4ed010869d810abcf348f4ff6b66d14ff09672fb7b5872e4881a25db7'
-            }
-        };
+        // Use centralized address registry
+        this.addresses = ADDRESSES;
     }
 
+    /**
+     * Get full DeFi overview combining DefiLlama and on-chain data
+     */
     async getFullDeFiOverview() {
         try {
-            const [networkData, protocolsData, chainInfo] = await Promise.all([
+            const [networkData, protocolsData, chainInfo, satayStats] = await Promise.all([
                 this.defillama.getMovementNetworkTVL(),
                 this.defillama.getAllMovementProtocols(),
-                this.rpc.getChainInfo()
-            ]);
-
-            // Get detailed data for each major protocol
-            const [canopyData, meridianData, movepositionData] = await Promise.allSettled([
-                this.defillama.getProtocolTVL('canopy'),
-                this.defillama.getProtocolTVL('meridian'),
-                this.defillama.getProtocolTVL('moveposition')
+                this.rpc.getChainInfo(),
+                this.satay.getAggregatedStats(),
             ]);
 
             return {
@@ -46,25 +53,16 @@ class MovementDefiAggregator {
                     chainId: chainInfo?.chainId || 126,
                     currentBlock: chainInfo?.blockHeight,
                     totalTVL: networkData?.tvl || 0,
-                    nativeToken: networkData?.tokenSymbol || 'MOVE'
+                    nativeToken: networkData?.tokenSymbol || 'MOVE',
                 },
-                protocols: {
-                    canopy: canopyData.status === 'fulfilled' ? {
-                        ...canopyData.value,
-                        addresses: this.addresses.canopy,
-                        category: 'Yield Aggregator'
-                    } : null,
-                    meridian: meridianData.status === 'fulfilled' ? {
-                        ...meridianData.value,
-                        category: 'DEX/AMM'
-                    } : null,
-                    moveposition: movepositionData.status === 'fulfilled' ? {
-                        ...movepositionData.value,
-                        category: 'Liquidity Management'
-                    } : null
+                satay: {
+                    totalTVL: satayStats.totalTVL,
+                    vaultCount: satayStats.vaultCount,
+                    activeVaultCount: satayStats.activeVaultCount,
+                    averageAPY: satayStats.averageAPY,
                 },
                 allProtocols: protocolsData,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             };
         } catch (error) {
             console.error('Full DeFi overview error:', error.message);
@@ -72,25 +70,26 @@ class MovementDefiAggregator {
         }
     }
 
+    /**
+     * Get user positions with protocol identification
+     */
     async getUserPositions(walletAddress) {
         try {
             const balances = await this.indexer.getUserBalances(walletAddress);
 
-            // Format balances with protocol mapping
             const formattedBalances = balances.map(balance => ({
                 asset: balance.metadata?.symbol || 'Unknown',
                 amount: balance.amount,
                 decimals: balance.metadata?.decimals || 18,
                 assetType: balance.asset_type,
-                // Determine protocol based on asset type
-                protocol: this.identifyProtocol(balance.asset_type)
+                protocol: this.identifyProtocol(balance.asset_type),
             }));
 
             return {
                 wallet: walletAddress,
                 balances: formattedBalances,
                 totalAssets: balances.length,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             };
         } catch (error) {
             console.error('User positions error:', error.message);
@@ -98,16 +97,16 @@ class MovementDefiAggregator {
         }
     }
 
+    /**
+     * Get combined data (overview + user positions)
+     */
     async getCombinedData(walletAddress = null) {
         try {
             const overview = await this.getFullDeFiOverview();
 
             if (walletAddress) {
                 const userPositions = await this.getUserPositions(walletAddress);
-                return {
-                    ...overview,
-                    userPositions
-                };
+                return { ...overview, userPositions };
             }
 
             return overview;
@@ -117,22 +116,42 @@ class MovementDefiAggregator {
         }
     }
 
+    /**
+     * Identify protocol from asset type
+     */
     identifyProtocol(assetType) {
-        if (assetType.includes('canopy') || assetType.includes(this.addresses.canopy.vaults)) {
-            return 'canopy';
+        if (!assetType) return 'unknown';
+
+        const lowerAssetType = assetType.toLowerCase();
+
+        // Check Satay vaults
+        if (lowerAssetType.includes(this.addresses.satay.controller.toLowerCase())) {
+            return 'satay';
         }
-        if (assetType.includes('meridian') || assetType.includes('MER')) {
+
+        // Check Echelon markets
+        for (const [asset, address] of Object.entries(this.addresses.echelon.markets)) {
+            if (lowerAssetType.includes(address.toLowerCase())) {
+                return 'echelon';
+            }
+        }
+
+        // Check Meridian
+        if (lowerAssetType.includes(this.addresses.meridian.router.toLowerCase())) {
             return 'meridian';
         }
-        if (assetType.includes('echelon') || assetType.includes(this.addresses.echelon.market)) {
-            return 'echelon';
-        }
+
+        // Check native
         if (assetType === '0x1::aptos_coin::AptosCoin') {
             return 'native';
         }
+
         return 'unknown';
     }
 
+    /**
+     * Get token prices
+     */
     async getPrices() {
         try {
             return await this.priceOracle.getAllPrices();
@@ -142,34 +161,29 @@ class MovementDefiAggregator {
         }
     }
 
+    /**
+     * Get enhanced user data with USD values
+     */
     async getEnhancedUserData(walletAddress) {
         try {
             const [positions, prices] = await Promise.all([
                 this.getUserPositions(walletAddress),
-                this.getPrices()
+                this.getPrices(),
             ]);
 
-            // Calculate USD values for each balance
             const enrichedBalances = positions.balances.map(balance => {
                 const price = prices[balance.asset]?.usd || 0;
-                const usdValue = APYCalculator.calculateUSDValue(
-                    balance.amount,
-                    balance.decimals,
-                    price
-                );
+                const amount = parseFloat(balance.amount) / Math.pow(10, balance.decimals);
+                const usdValue = amount * price;
 
                 return {
                     ...balance,
                     priceUSD: price,
-                    valueUSD: usdValue
+                    valueUSD: usdValue,
                 };
             });
 
-            // Calculate total portfolio value
-            const totalValueUSD = enrichedBalances.reduce(
-                (sum, bal) => sum + bal.valueUSD,
-                0
-            );
+            const totalValueUSD = enrichedBalances.reduce((sum, bal) => sum + bal.valueUSD, 0);
 
             return {
                 wallet: walletAddress,
@@ -177,7 +191,7 @@ class MovementDefiAggregator {
                 totalAssets: enrichedBalances.length,
                 totalValueUSD,
                 prices,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             };
         } catch (error) {
             console.error('Enhanced user data error:', error.message);
@@ -185,22 +199,80 @@ class MovementDefiAggregator {
         }
     }
 
+    /**
+     * Get protocol metrics with REAL APY data
+     * This is the main endpoint that feeds the frontend PoolList
+     */
     async getProtocolMetrics() {
         try {
-            const protocols = await this.defillama.getAllMovementProtocols();
-            const prices = await this.getPrices();
+            const [defiLlamaProtocols, satayStats, prices] = await Promise.all([
+                this.defillama.getAllMovementProtocols(),
+                this.satay.getAggregatedStats(),
+                this.getPrices(),
+            ]);
 
-            // Get APY data using real DefiLlama metrics
-            const protocolsWithAPY = await this.apyFetcher.getAllProtocolAPYs(
-                protocols.slice(0, 10)
-            );
+            // Create a map to track protocols and prevent duplicates
+            const protocolMap = new Map();
+
+            // Process DefiLlama protocols first
+            defiLlamaProtocols.forEach(proto => {
+                const key = proto.name.toLowerCase().replace(/\s+/g, '');
+
+                // Skip if this is Satay/Canopy (we'll add from on-chain data)
+                if (key.includes('satay') || key.includes('canopy')) {
+                    return;
+                }
+
+                protocolMap.set(key, {
+                    name: proto.name,
+                    slug: proto.slug,
+                    tvl: proto.tvl || 0,
+                    category: proto.category || 'DeFi',
+                    change_7d: proto.change_7d ? proto.change_7d.toFixed(2) + '%' : 'N/A',
+                    apy: this.getDefiLlamaAPYEstimate(proto),
+                    apyNote: 'Estimated from category averages',
+                    apySource: 'estimated',
+                    dataSource: 'defillama',
+                });
+            });
+
+            // Add Satay vaults with REAL on-chain APY
+            satayStats.vaults.forEach(vault => {
+                // Only add vaults with actual TVL to avoid empty entries
+                if (vault.tvl > 0) {
+                    const key = `satay-${vault.asset.toLowerCase()}`;
+
+                    protocolMap.set(key, {
+                        name: vault.name,
+                        slug: vault.vaultAddress,
+                        tvl: vault.tvl,
+                        category: vault.category,
+                        change_7d: 'N/A', // On-chain doesn't provide this
+                        apy: vault.apy || 'N/A',
+                        apyNote: vault.apyNote,
+                        apySource: vault.apySource,
+                        dataSource: 'on-chain',
+                        vaultAddress: vault.vaultAddress,
+                        strategies: vault.strategies,
+                    });
+                }
+            });
+
+            // Convert map to array and sort by TVL
+            const protocols = Array.from(protocolMap.values())
+                .sort((a, b) => (b.tvl || 0) - (a.tvl || 0));
 
             return {
-                protocols: protocolsWithAPY,
+                protocols,
                 prices,
                 totalProtocols: protocols.length,
-                note: 'APY calculated from 7d TVL changes and category averages',
-                timestamp: new Date().toISOString()
+                satayStats: {
+                    totalTVL: satayStats.totalTVL,
+                    activeVaults: satayStats.activeVaultCount,
+                    averageAPY: satayStats.averageAPY,
+                },
+                note: 'APY from on-chain data where available, otherwise category estimates',
+                timestamp: new Date().toISOString(),
             };
         } catch (error) {
             console.error('Protocol metrics error:', error.message);
@@ -208,27 +280,56 @@ class MovementDefiAggregator {
         }
     }
 
-    async calculateRealAPY(protocolSlug) {
-        try {
-            // Get historical TVL data from DefiLlama
-            const response = await this.defillama.getProtocolTVL(protocolSlug);
+    /**
+     * Get APY estimate for DefiLlama protocols
+     * Only used as fallback when on-chain data unavailable
+     * Note: These are ESTIMATES, not real APY
+     */
+    getDefiLlamaAPYEstimate(protocol) {
+        // Category-based fallback ranges (more reliable than extrapolation)
+        const categoryRanges = {
+            'Yield Aggregator': '8-15%',
+            'Dexs': '5-25%',
+            'Lending': '3-12%',
+            'Liquid Staking': '5-10%',
+            'CDP': '2-8%',
+            'Derivatives': '5-20%',
+            'NFT Lending': '10-30%',
+            'RWA': '5-15%',
+        };
 
-            if (!response || !response.tvl) {
-                return 'Data unavailable';
-            }
+        // Return category range instead of unreliable 7-day extrapolation
+        // The problem with extrapolating 7-day change: a 10% weekly change 
+        // would extrapolate to astronomical APY which is misleading
+        return categoryRanges[protocol.category] || 'See protocol';
+    }
 
-            // For yield protocols, TVL growth can indicate APY
-            // This is a real calculation based on actual data, not an estimate
-            const currentTVL = response.tvl;
+    /**
+     * Get Satay vault details
+     */
+    async getSatayVaults() {
+        return await this.satay.getAllVaults();
+    }
 
-            // Return actual TVL with note that APY requires vault-specific data
-            return {
-                current: 'Real-time data',
-                note: 'APY varies by vault - query specific vault for exact rate'
-            };
-        } catch (error) {
-            return 'Calculation error';
-        }
+    /**
+     * Get specific vault by asset
+     */
+    async getSatayVaultByAsset(assetName) {
+        return await this.satay.getVaultByAsset(assetName);
+    }
+
+    /**
+     * Get all Echelon markets
+     */
+    async getEchelonMarkets() {
+        return await this.echelon.getAllMarkets();
+    }
+
+    /**
+     * Get specific Echelon market by asset
+     */
+    async getEchelonMarket(asset) {
+        return await this.echelon.getMarketInfo(asset);
     }
 }
 

@@ -1,13 +1,12 @@
 /**
- * Echelon Lending Service - Fixed
- * Uses correct function signatures based on Echelon protocol ABI.
- * Uses centralized address registry.
+ * Satay Service
+ * Handles deposit/withdraw operations for Satay Finance vaults.
  */
 
 const { Account, Aptos, AptosConfig, Network, Ed25519PrivateKey } = require('@aptos-labs/ts-sdk');
-const { ADDRESSES, getEchelonMarket } = require('../utils/addressRegistry');
+const { getSatayController } = require('../utils/addressRegistry');
 
-class EchelonService {
+class SatayService {
     constructor(config) {
         const aptosConfig = new AptosConfig({
             network: Network.CUSTOM,
@@ -15,11 +14,11 @@ class EchelonService {
         });
 
         this.aptos = new Aptos(aptosConfig);
-        this.serverPrivateKey = config.serverPrivateKey;
+        this.controllerAddress = getSatayController();
 
-        if (this.serverPrivateKey) {
+        if (config.serverPrivateKey) {
             try {
-                const privateKey = new Ed25519PrivateKey(this.serverPrivateKey);
+                const privateKey = new Ed25519PrivateKey(config.serverPrivateKey);
                 this.serverAccount = Account.fromPrivateKey({ privateKey });
             } catch (error) {
                 console.error('Failed to initialize server account:', error.message);
@@ -27,30 +26,24 @@ class EchelonService {
         }
     }
 
-    getMarketAddress(asset) {
-        return getEchelonMarket(asset);
-    }
-
-    getSupportedMarkets() {
-        return Object.keys(ADDRESSES.echelon.markets).map(asset => ({
-            asset,
-            address: ADDRESSES.echelon.markets[asset],
-        }));
-    }
-
-    async supply(marketAddress, amount, userAddress) {
+    /**
+     * Deposit to a Satay vault
+     * @param {string} vaultAddress - The vault address
+     * @param {string} amount - Amount to deposit (in smallest units)
+     * @param {string} userAddress - User's wallet address (for tracking)
+     */
+    async deposit(vaultAddress, amount, userAddress) {
         if (!this.serverAccount) {
             throw new Error('Server account not configured. Set SERVER_PRIVATE_KEY in .env');
         }
 
         try {
-            // Build the transaction
             const transaction = await this.aptos.transaction.build.simple({
                 sender: this.serverAccount.accountAddress,
                 data: {
-                    function: `${marketAddress}::lending_pool::supply`,
+                    function: `${this.controllerAddress}::vault::deposit`,
                     typeArguments: [],
-                    functionArguments: [amount.toString()],
+                    functionArguments: [vaultAddress, amount.toString()],
                 },
             });
 
@@ -72,17 +65,24 @@ class EchelonService {
                 success: true,
                 hash: committedTxn.hash,
                 response,
-                marketAddress,
+                vaultAddress,
                 amount: amount.toString(),
                 userAddress,
+                protocol: 'satay',
             };
         } catch (error) {
-            console.error('Supply error:', error);
-            throw new Error(`Failed to supply: ${error.message}`);
+            console.error('Satay deposit error:', error);
+            throw new Error(`Failed to deposit to Satay: ${error.message}`);
         }
     }
 
-    async withdraw(marketAddress, amount, userAddress) {
+    /**
+     * Withdraw from a Satay vault
+     * @param {string} vaultAddress - The vault address
+     * @param {string} shares - Amount of shares to withdraw
+     * @param {string} userAddress - User's wallet address (for tracking)
+     */
+    async withdraw(vaultAddress, shares, userAddress) {
         if (!this.serverAccount) {
             throw new Error('Server account not configured. Set SERVER_PRIVATE_KEY in .env');
         }
@@ -91,9 +91,9 @@ class EchelonService {
             const transaction = await this.aptos.transaction.build.simple({
                 sender: this.serverAccount.accountAddress,
                 data: {
-                    function: `${marketAddress}::lending_pool::withdraw`,
+                    function: `${this.controllerAddress}::vault::withdraw`,
                     typeArguments: [],
-                    functionArguments: [amount.toString()],
+                    functionArguments: [vaultAddress, shares.toString()],
                 },
             });
 
@@ -115,22 +115,26 @@ class EchelonService {
                 success: true,
                 hash: committedTxn.hash,
                 response,
-                marketAddress,
-                amount: amount.toString(),
+                vaultAddress,
+                shares: shares.toString(),
                 userAddress,
+                protocol: 'satay',
             };
         } catch (error) {
-            console.error('Withdraw error:', error);
-            throw new Error(`Failed to withdraw: ${error.message}`);
+            console.error('Satay withdraw error:', error);
+            throw new Error(`Failed to withdraw from Satay: ${error.message}`);
         }
     }
 
-    async getUserPosition(userAddress, marketAddress) {
+    /**
+     * Get user's position in a vault
+     */
+    async getUserPosition(userAddress, vaultAddress) {
         try {
             const payload = {
-                function: `${marketAddress}::lending_pool::get_user_position`,
+                function: `${this.controllerAddress}::vault::user_position`,
                 typeArguments: [],
-                functionArguments: [userAddress],
+                functionArguments: [userAddress, vaultAddress],
             };
 
             const result = await this.aptos.view({ payload });
@@ -138,48 +142,20 @@ class EchelonService {
             return {
                 success: true,
                 userAddress,
-                marketAddress,
-                supplied: result[0] || '0',
-                borrowed: result[1] || '0',
+                vaultAddress,
+                shares: result[0] || '0',
+                assets: result[1] || '0',
             };
         } catch (error) {
-            // Return zero positions if not found
             return {
                 success: true,
                 userAddress,
-                marketAddress,
-                supplied: '0',
-                borrowed: '0',
-            };
-        }
-    }
-
-    async getMarketInfo(marketAddress) {
-        try {
-            const payload = {
-                function: `${marketAddress}::lending_pool::get_market_info`,
-                typeArguments: [],
-                functionArguments: [],
-            };
-
-            const result = await this.aptos.view({ payload });
-
-            return {
-                success: true,
-                marketAddress,
-                totalSupplied: result[0] || '0',
-                totalBorrowed: result[1] || '0',
-                supplyRate: result[2] || '0',
-                borrowRate: result[3] || '0',
-            };
-        } catch (error) {
-            return {
-                success: false,
-                marketAddress,
-                error: error.message,
+                vaultAddress,
+                shares: '0',
+                assets: '0',
             };
         }
     }
 }
 
-module.exports = EchelonService;
+module.exports = SatayService;
