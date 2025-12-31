@@ -1,4 +1,4 @@
-package com.anonymous.yield
+package com.kinetic.defi
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

@@ -1,4 +1,4 @@
-package com.anonymous.yield
+package com.kinetic.defi
 
 import android.app.Application
 import android.content.res.Configuration
