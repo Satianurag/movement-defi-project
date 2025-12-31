@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 import { View } from 'react-native';
 import type { LucideIcon } from 'lucide-react-native';
+import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
 
 interface OnboardingSlideProps {
     icon: LucideIcon;
@@ -21,8 +22,9 @@ function OnboardingSlide({
 }: OnboardingSlideProps) {
     return (
         <View className="flex-1 items-center justify-center px-8">
-            {/* Icon Container with Glassmorphism */}
-            <View
+            {/* Icon Container with Glassmorphism and Entry Animation */}
+            <Animated.View
+                entering={FadeInUp.delay(100).duration(500).springify()}
                 className={cn(
                     'mb-8 h-32 w-32 items-center justify-center rounded-3xl',
                     'bg-primary/10 border border-primary/20',
@@ -30,15 +32,19 @@ function OnboardingSlide({
                 )}
             >
                 <Icon size={64} className={iconColor} strokeWidth={1.5} />
-            </View>
+            </Animated.View>
 
-            {/* Title */}
-            <Text className="mb-4 text-center text-3xl font-bold text-foreground">{title}</Text>
+            {/* Title with Entry Animation */}
+            <Animated.View entering={FadeInUp.delay(200).duration(400)}>
+                <Text className="mb-4 text-center text-3xl font-bold text-foreground">{title}</Text>
+            </Animated.View>
 
-            {/* Description */}
-            <Text className="mb-8 text-center text-lg leading-relaxed text-muted-foreground">
-                {description}
-            </Text>
+            {/* Description with Entry Animation */}
+            <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+                <Text className="mb-8 text-center text-lg leading-relaxed text-muted-foreground">
+                    {description}
+                </Text>
+            </Animated.View>
 
             {/* Optional Extra Content */}
             {children}

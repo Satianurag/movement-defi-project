@@ -3,7 +3,7 @@ import { useSmartWallets } from '@privy-io/expo/smart-wallets';
 import { useCallback, useMemo } from 'react';
 
 /**
- * Custom hook wrapping Privy wallet functionality for the Movement DeFi app.
+ * Custom hook wrapping Privy wallet functionality for the Kinetic app.
  * Provides easy access to wallet address, signing, transaction methods, and HD wallet management.
  */
 export function useWallet() {

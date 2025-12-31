@@ -386,7 +386,7 @@ export default function PoolDetailScreen() {
                                 <CardHeader>
                                     <CardTitle>TVL Share</CardTitle>
                                     <CardDescription>
-                                        Share of total Movement DeFi TVL
+                                        Share of total Kinetic TVL
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>

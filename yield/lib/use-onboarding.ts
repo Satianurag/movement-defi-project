@@ -1,7 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import { useCallback, useEffect, useState } from 'react';
 
-const ONBOARDING_KEY = 'movement_defi_onboarding_complete';
+const ONBOARDING_KEY = 'kinetic_onboarding_complete';
 
 export function useOnboarding() {
     const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean | null>(null);

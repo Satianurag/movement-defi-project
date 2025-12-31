@@ -93,13 +93,23 @@ type ButtonProps = React.ComponentProps<typeof Pressable> &
   VariantProps<typeof buttonVariants>;
 
 import { Text } from '@/components/ui/text';
+import * as Haptics from 'expo-haptics';
 
-function Button({ className, variant, size, ...props }: ButtonProps) {
+function Button({ className, variant, size, onPress, ...props }: ButtonProps & { onPress?: () => void }) {
+  const handlePress = () => {
+    // Trigger light haptic feedback on native platforms
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    onPress?.();
+  };
+
   return (
     <TextClassContext.Provider value={buttonTextVariants({ variant, size })}>
       <Pressable
         className={cn(props.disabled && 'opacity-50', buttonVariants({ variant, size }), className)}
         role="button"
+        onPress={handlePress}
         {...props}
       >
         {typeof props.children === 'string' || typeof props.children === 'number' ? (

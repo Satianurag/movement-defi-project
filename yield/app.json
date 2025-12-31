@@ -1,32 +1,32 @@
 {
   "expo": {
-    "name": "yield",
-    "slug": "yield",
+    "name": "Kinetic",
+    "slug": "kinetic",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "yield",
+    "scheme": "kinetic",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#000000"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleId": "com.anonymous.yield"
+      "bundleId": "com.kinetic.defi"
     },
     "android": {
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#000000"
       },
-      "package": "com.anonymous.yield"
+      "package": "com.kinetic.defi"
     },
     "web": {
       "bundler": "metro",

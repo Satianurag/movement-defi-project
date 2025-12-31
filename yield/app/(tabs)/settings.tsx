@@ -209,7 +209,7 @@ export default function SettingsScreen() {
 
                     {/* App Info */}
                     <View className="items-center gap-1 mt-4">
-                        <Text className="text-xs text-muted-foreground">Movement DeFi v1.0.0</Text>
+                        <Text className="text-xs text-muted-foreground">Kinetic v1.0.0</Text>
                         <Text className="text-xs text-muted-foreground">Powered by Privy</Text>
                     </View>
                 </View>

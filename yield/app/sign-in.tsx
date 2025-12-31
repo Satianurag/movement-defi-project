@@ -123,13 +123,24 @@ export default function SignInScreen() {
                 <View className="flex-1 justify-center px-6 py-12">
                     {/* Header */}
                     <View className="items-center mb-8">
-                        <View className="h-20 w-20 rounded-full bg-primary/10 items-center justify-center mb-4">
-                            <WalletIcon size={40} className="text-primary" />
+                        {/* Logo Container with Gradient Ring */}
+                        <View className="relative mb-4">
+                            <View className="h-24 w-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 items-center justify-center border-2 border-primary/30">
+                                <WalletIcon size={48} className="text-primary" strokeWidth={1.5} />
+                            </View>
+                            {/* Decorative Ring */}
+                            <View className="absolute -inset-1 rounded-full border border-primary/10" />
                         </View>
-                        <Text className="text-3xl font-bold text-foreground mb-2">
-                            Movement DeFi
+                        {/* App Name */}
+                        <Text className="text-4xl font-bold text-foreground mb-1 tracking-tight">
+                            Kinetic
                         </Text>
-                        <Text className="text-muted-foreground text-center">
+                        {/* Tagline */}
+                        <Text className="text-sm font-medium text-primary/80 mb-3 tracking-widest uppercase">
+                            DeFi Unbound
+                        </Text>
+                        {/* Description */}
+                        <Text className="text-muted-foreground text-center leading-relaxed">
                             Sign in to track your yields and manage your portfolio
                         </Text>
                     </View>

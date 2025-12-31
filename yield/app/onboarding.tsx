@@ -35,33 +35,33 @@ const SLIDES: SlideData[] = [
     {
         id: 'welcome',
         icon: WalletIcon,
-        title: 'Welcome to Movement DeFi',
+        title: 'Welcome to Kinetic',
         description:
-            'Your gateway to discovering and tracking the best yield opportunities on the Movement network.',
+            'DeFi Unbound — Your high-speed gateway to tracking the best yield opportunities on the Movement network.',
         iconColor: 'text-primary',
     },
     {
         id: 'yield',
         icon: TrendingUpIcon,
-        title: 'Discover Top Yields',
+        title: 'Discover High-Velocity Yields',
         description:
-            'Explore curated DeFi pools with real-time APY tracking, TVL data, and risk assessments across all Movement protocols.',
+            'Explore curated DeFi pools with real-time APY tracking and instant data velocity across all Movement protocols.',
         iconColor: 'text-emerald-500',
     },
     {
         id: 'portfolio',
         icon: PieChartIcon,
-        title: 'Track Your Portfolio',
+        title: 'Visualize Your Position',
         description:
-            'Connect your wallet to monitor your positions, track earnings, and get insights on your DeFi investments.',
+            'Connect your wallet to monitor your liquid assets, track earnings, and gain kinetic insights on your DeFi investments.',
         iconColor: 'text-blue-500',
     },
     {
         id: 'start',
         icon: RocketIcon,
-        title: "Let's Get Started",
+        title: "Launch Kinetic",
         description:
-            'Sign in to unlock personalized recommendations and start maximizing your yield potential.',
+            'Sign in to unlock personalized recommendations and start accelerating your yield potential.',
         iconColor: 'text-amber-500',
     },
 ];
