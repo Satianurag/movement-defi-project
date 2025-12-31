@@ -192,18 +192,6 @@ class EchelonService {
      * @param {string} userAddress - Borrower's address
      */
     async borrow(marketAddress, amount, userAddress) {
-        if (process.env.SIMULATION_MODE === 'true') {
-            console.log(`[SIMULATION] Borrowing ${amount} from market ${marketAddress}`);
-            return {
-                success: true,
-                hash: '0xSIMULATED_BORROW_HASH_' + Date.now(),
-                marketAddress,
-                amount: amount.toString(),
-                userAddress,
-                protocol: 'echelon',
-            };
-        }
-
         if (!this.serverAccount) {
             throw new Error('Server account not configured. Set SERVER_PRIVATE_KEY in .env');
         }
@@ -262,18 +250,6 @@ class EchelonService {
      * @param {string} userAddress - Borrower's address
      */
     async repay(marketAddress, amount, userAddress) {
-        if (process.env.SIMULATION_MODE === 'true') {
-            console.log(`[SIMULATION] Repaying ${amount} to market ${marketAddress}`);
-            return {
-                success: true,
-                hash: '0xSIMULATED_REPAY_HASH_' + Date.now(),
-                marketAddress,
-                amount: amount.toString(),
-                userAddress,
-                protocol: 'echelon',
-            };
-        }
-
         if (!this.serverAccount) {
             throw new Error('Server account not configured');
         }
@@ -369,15 +345,6 @@ class EchelonService {
      * Enable an asset as collateral
      */
     async enableAsCollateral(marketAddress, userAddress) {
-        if (process.env.SIMULATION_MODE === 'true') {
-            return {
-                success: true,
-                hash: '0xSIMULATED_ENABLE_COLLATERAL_' + Date.now(),
-                marketAddress,
-                enabled: true,
-            };
-        }
-
         if (!this.serverAccount) {
             throw new Error('Server account not configured');
         }
@@ -419,15 +386,6 @@ class EchelonService {
      * Disable an asset as collateral
      */
     async disableAsCollateral(marketAddress, userAddress) {
-        if (process.env.SIMULATION_MODE === 'true') {
-            return {
-                success: true,
-                hash: '0xSIMULATED_DISABLE_COLLATERAL_' + Date.now(),
-                marketAddress,
-                enabled: false,
-            };
-        }
-
         if (!this.serverAccount) {
             throw new Error('Server account not configured');
         }

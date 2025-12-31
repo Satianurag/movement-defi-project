@@ -11,8 +11,9 @@ import {
     LoaderIcon,
     CheckCircleIcon,
     WalletIcon,
+    AlertCircleIcon,
 } from 'lucide-react-native';
-import { usePrivy, useEmbeddedEthereumWallet } from '@/lib/privy-hooks';
+import { usePrivy, useEmbeddedEthereumWallet, useFundWallet } from '@/lib/privy-hooks';
 
 interface FundWalletProps {
     onSuccess?: () => void;
@@ -25,10 +26,12 @@ export function FundWallet({ onSuccess, onCancel }: FundWalletProps) {
     const { user } = usePrivy();
     const { wallets } = useEmbeddedEthereumWallet();
     const wallet = wallets?.[0];
+    const { fundWallet } = useFundWallet();
 
     const [selectedProvider, setSelectedProvider] = useState<FundingProvider | null>(null);
     const [amount, setAmount] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const providers: Array<{
         id: FundingProvider;
@@ -71,28 +74,26 @@ export function FundWallet({ onSuccess, onCancel }: FundWalletProps) {
         }
 
         setIsLoading(true);
+        setError(null);
+
         try {
-            // Note: Actual funding requires configuration in Privy Dashboard
-            // The fundWallet flow will open a WebView to the provider
-            Alert.alert(
-                'Fund Wallet',
-                `This will open ${selectedProvider === 'coinbase' ? 'Coinbase Pay' : 'Moonpay'} to fund $${amount} to your wallet.\n\nNote: Fiat on-ramp requires API keys configured in Privy Dashboard.`,
-                [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                        text: 'Continue',
-                        onPress: () => {
-                            // In production, this would trigger the actual funding flow
-                            onSuccess?.();
-                        }
-                    }
-                ]
-            );
-        } catch (error) {
-            Alert.alert(
-                'Error',
-                error instanceof Error ? error.message : 'Failed to initiate funding'
-            );
+            // Use the real Privy fundWallet hook
+            await fundWallet({
+                address: wallet.address,
+                amount: amount,
+                defaultPaymentMethod: 'card',
+                card: {
+                    preferredProvider: selectedProvider,
+                },
+            });
+
+            onSuccess?.();
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to initiate funding';
+            setError(errorMessage);
+
+            // Show alert for user-friendly feedback
+            Alert.alert('Funding Error', errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -174,6 +175,14 @@ export function FundWallet({ onSuccess, onCancel }: FundWalletProps) {
                     ))}
                 </View>
 
+                {/* Error Display */}
+                {error && (
+                    <View className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 flex-row items-center gap-2">
+                        <AlertCircleIcon size={16} className="text-destructive" />
+                        <Text className="text-destructive text-sm flex-1">{error}</Text>
+                    </View>
+                )}
+
                 {/* Action Buttons */}
                 <View className="flex-row gap-3 mt-2">
                     <Button
@@ -197,6 +206,13 @@ export function FundWallet({ onSuccess, onCancel }: FundWalletProps) {
                             </>
                         )}
                     </Button>
+                </View>
+
+                {/* Info Note */}
+                <View className="bg-muted/50 rounded-lg p-3 mt-2">
+                    <Text className="text-xs text-muted-foreground text-center">
+                        Powered by Privy. Funding requires provider API keys configured in the Privy Dashboard.
+                    </Text>
                 </View>
             </CardContent>
         </Card>

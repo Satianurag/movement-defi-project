@@ -34,18 +34,6 @@ class MeridianService {
      * @param {string} minAmountOut - Minimum output amount (slippage protection)
      */
     async swap(tokenIn, tokenOut, amountIn, minAmountOut, userAddress) {
-        if (process.env.SIMULATION_MODE === 'true') {
-            console.log(`[SIMULATION] Swapping ${amountIn} ${tokenIn} -> ${tokenOut}`);
-            return {
-                success: true,
-                hash: '0xSIMULATED_SWAP_HASH_' + Date.now(),
-                tokenIn,
-                tokenOut,
-                amountIn: amountIn.toString(),
-                protocol: 'meridian'
-            };
-        }
-
         if (!this.serverAccount) {
             throw new Error('Server account not configured. Set SERVER_PRIVATE_KEY in .env');
         }
@@ -93,19 +81,6 @@ class MeridianService {
      * Add liquidity to a pool
      */
     async addLiquidity(tokenA, tokenB, amountA, amountB, userAddress) {
-        if (process.env.SIMULATION_MODE === 'true') {
-            console.log(`[SIMULATION] Adding Liquidity ${amountA} / ${amountB}`);
-            return {
-                success: true,
-                hash: '0xSIMULATED_LP_HASH_' + Date.now(),
-                tokenA,
-                tokenB,
-                amountA: amountA.toString(),
-                amountB: amountB.toString(),
-                protocol: 'meridian'
-            };
-        }
-
         if (!this.serverAccount) {
             throw new Error('Server account not configured');
         }

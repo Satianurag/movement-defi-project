@@ -59,7 +59,7 @@ export function BorrowRepayModal({
                     Alert.alert('Success', `Borrowed ${amount} ${assetSymbol}`);
                     setAmount('');
                 },
-                onError: (error) => {
+                onError: (error: Error) => {
                     Alert.alert('Error', error.message);
                 },
             });
@@ -69,7 +69,7 @@ export function BorrowRepayModal({
                     Alert.alert('Success', `Repaid ${amount} ${assetSymbol}`);
                     setAmount('');
                 },
-                onError: (error) => {
+                onError: (error: Error) => {
                     Alert.alert('Error', error.message);
                 },
             });

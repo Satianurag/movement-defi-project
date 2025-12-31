@@ -74,7 +74,7 @@ export function USDMCard() {
                     setCollateralAmount('');
                     setUsdmAmount('');
                 },
-                onError: (error) => Alert.alert('Error', error.message),
+                onError: (error: Error) => Alert.alert('Error', error.message),
             });
         } else {
             if (!usdmAmount) {
@@ -90,7 +90,7 @@ export function USDMCard() {
                     Alert.alert('Success', `Burned ${usdmAmount} USDM`);
                     setUsdmAmount('');
                 },
-                onError: (error) => Alert.alert('Error', error.message),
+                onError: (error: Error) => Alert.alert('Error', error.message),
             });
         }
     };

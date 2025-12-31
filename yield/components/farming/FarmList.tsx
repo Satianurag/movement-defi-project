@@ -2,7 +2,7 @@ import React from 'react';
 import { View, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { FarmCard } from './FarmCard';
-import { useFarms, useUserFarmPositions, useStakeLP, useUnstakeLP } from '@/lib/useFarms';
+import { useFarms, useUserFarmPositions, useStakeLP, useUnstakeLP, Farm } from '@/lib/useFarms';
 import { useWallet } from '@/lib/useWallet';
 import { LeafIcon } from 'lucide-react-native';
 
@@ -14,7 +14,7 @@ export function FarmList() {
     const unstakeLP = useUnstakeLP();
 
     const getPositionForFarm = (farmId: number) => {
-        return positions?.find(p => p.farmId === farmId);
+        return positions?.find((p: { farmId: number }) => p.farmId === farmId);
     };
 
     const handleStake = (farmId: number, lpTokenType: string) => (amount: string) => {
@@ -86,7 +86,7 @@ export function FarmList() {
             </Text>
 
             {/* Farm Cards */}
-            {farms.map((farm) => (
+            {farms.map((farm: Farm) => (
                 <FarmCard
                     key={farm.farmId}
                     farm={farm}

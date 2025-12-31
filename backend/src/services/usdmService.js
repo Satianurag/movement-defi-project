@@ -36,18 +36,6 @@ class USDMService {
      * @param {string} userAddress - User's address
      */
     async mintUSDM(collateralType, collateralAmount, usdmAmount, userAddress) {
-        if (process.env.SIMULATION_MODE === 'true') {
-            console.log(`[SIMULATION] Minting ${usdmAmount} USDM with ${collateralAmount} ${collateralType}`);
-            return {
-                success: true,
-                hash: '0xSIMULATED_MINT_USDM_' + Date.now(),
-                collateralType,
-                collateralAmount: collateralAmount.toString(),
-                usdmAmount: usdmAmount.toString(),
-                protocol: 'meridian-usdm',
-            };
-        }
-
         if (!this.serverAccount) {
             throw new Error('Server account not configured');
         }
@@ -105,16 +93,6 @@ class USDMService {
      * @param {string} userAddress - User's address
      */
     async burnUSDM(collateralType, usdmAmount, userAddress) {
-        if (process.env.SIMULATION_MODE === 'true') {
-            console.log(`[SIMULATION] Burning ${usdmAmount} USDM`);
-            return {
-                success: true,
-                hash: '0xSIMULATED_BURN_USDM_' + Date.now(),
-                usdmAmount: usdmAmount.toString(),
-                protocol: 'meridian-usdm',
-            };
-        }
-
         if (!this.serverAccount) {
             throw new Error('Server account not configured');
         }
@@ -206,15 +184,6 @@ class USDMService {
      * Deposit to Stability Pool
      */
     async depositToStabilityPool(amount, userAddress) {
-        if (process.env.SIMULATION_MODE === 'true') {
-            return {
-                success: true,
-                hash: '0xSIMULATED_SP_DEPOSIT_' + Date.now(),
-                amount: amount.toString(),
-                protocol: 'meridian-usdm',
-            };
-        }
-
         if (!this.serverAccount) {
             throw new Error('Server account not configured');
         }
@@ -256,15 +225,6 @@ class USDMService {
      * Withdraw from Stability Pool
      */
     async withdrawFromStabilityPool(amount, userAddress) {
-        if (process.env.SIMULATION_MODE === 'true') {
-            return {
-                success: true,
-                hash: '0xSIMULATED_SP_WITHDRAW_' + Date.now(),
-                amount: amount.toString(),
-                protocol: 'meridian-usdm',
-            };
-        }
-
         if (!this.serverAccount) {
             throw new Error('Server account not configured');
         }

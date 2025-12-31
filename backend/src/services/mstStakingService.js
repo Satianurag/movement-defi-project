@@ -33,16 +33,6 @@ class MSTStakingService {
      * @param {string} userAddress - User's address
      */
     async stake(amount, userAddress) {
-        if (process.env.SIMULATION_MODE === 'true') {
-            console.log(`[SIMULATION] Staking ${amount} MST`);
-            return {
-                success: true,
-                hash: '0xSIMULATED_STAKE_MST_' + Date.now(),
-                amount: amount.toString(),
-                protocol: 'meridian-mst',
-            };
-        }
-
         if (!this.serverAccount) {
             throw new Error('Server account not configured');
         }
@@ -97,16 +87,6 @@ class MSTStakingService {
      * @param {string} userAddress - User's address
      */
     async unstake(amount, userAddress) {
-        if (process.env.SIMULATION_MODE === 'true') {
-            console.log(`[SIMULATION] Unstaking ${amount} MST`);
-            return {
-                success: true,
-                hash: '0xSIMULATED_UNSTAKE_MST_' + Date.now(),
-                amount: amount.toString(),
-                protocol: 'meridian-mst',
-            };
-        }
-
         if (!this.serverAccount) {
             throw new Error('Server account not configured');
         }
@@ -159,14 +139,6 @@ class MSTStakingService {
      * Claim staking rewards
      */
     async claimRewards(userAddress) {
-        if (process.env.SIMULATION_MODE === 'true') {
-            return {
-                success: true,
-                hash: '0xSIMULATED_CLAIM_MST_REWARDS_' + Date.now(),
-                protocol: 'meridian-mst',
-            };
-        }
-
         if (!this.serverAccount) {
             throw new Error('Server account not configured');
         }
@@ -265,13 +237,8 @@ class MSTStakingService {
                 totalStakers: result[2] || 0,
             };
         } catch (error) {
-            // Return mock data for development
-            return {
-                success: true,
-                totalStaked: '1000000000000',
-                apr: 15.5,
-                totalStakers: 250,
-            };
+            console.error('Failed to fetch staking stats:', error.message);
+            throw new Error('Failed to fetch staking stats from on-chain. Please try again later.');
         }
     }
 
@@ -279,9 +246,17 @@ class MSTStakingService {
      * Calculate APR from protocol fees
      */
     calculateAPR(data) {
+        // Calculate APR from on-chain data
         // APR = (Annual Reward / Total Staked) * 100
-        // Simplified calculation - in production would use real fee data
-        return 15.5; // 15.5% base APR
+        if (data && data[0] && data[1]) {
+            const totalStaked = parseFloat(data[0]);
+            const rewardsPerYear = parseFloat(data[1]) * 365 * 24; // Assuming hourly rewards
+            if (totalStaked > 0) {
+                return parseFloat(((rewardsPerYear / totalStaked) * 100).toFixed(2));
+            }
+        }
+        // Return null if we can't calculate - caller should fetch from DefiLlama
+        return null;
     }
 }
 

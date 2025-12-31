@@ -35,6 +35,16 @@ export {
     useMfa,
 } from '@privy-io/expo';
 
+// Session Signers & Delegated Actions
+export {
+    useSessionSigners,
+    useSigners,
+    useHeadlessDelegatedActions,
+} from '@privy-io/expo';
+
+// Identity Token
+export { useIdentityToken } from '@privy-io/expo';
+
 // Passkey support
 export {
     useLoginWithPasskey,
@@ -42,6 +52,9 @@ export {
 
 // Smart Wallets
 export { useSmartWallets } from '@privy-io/expo/smart-wallets';
+
+// UI Components - Fiat On-Ramp & Delegated Actions
+export { useFundWallet, useDelegatedActions } from '@privy-io/expo/ui';
 
 /**
  * OAuth Provider types for linking and login
@@ -68,3 +81,8 @@ export type RecoveryMethod =
  * MFA method types
  */
 export type MfaMethod = 'sms' | 'totp' | 'passkey';
+
+/**
+ * Chain type for delegated actions
+ */
+export type ChainType = 'ethereum' | 'solana';

@@ -54,26 +54,9 @@ class MeridianFarmService {
                 apr: this.calculateFarmAPR(farm),
             }));
         } catch (error) {
-            console.warn('Failed to fetch farms, returning mock data:', error.message);
-            // Return mock data for development/testing
-            return [
-                {
-                    farmId: 0,
-                    lpToken: 'MOVE-USDC LP',
-                    rewardToken: 'MST',
-                    totalStaked: '1000000000000',
-                    multiplier: 2,
-                    apr: 45.5,
-                },
-                {
-                    farmId: 1,
-                    lpToken: 'MOVE-ETH LP',
-                    rewardToken: 'MST',
-                    totalStaked: '500000000000',
-                    multiplier: 1.5,
-                    apr: 32.8,
-                },
-            ];
+            console.error('Failed to fetch farms from on-chain:', error.message);
+            // Return empty array instead of mock data - caller can fetch from DefiLlama if needed
+            throw new Error('Failed to fetch farms from on-chain. Please try again later.');
         }
     }
 
@@ -156,17 +139,6 @@ class MeridianFarmService {
      * Stake LP tokens into a farm (server-signed for custodial mode)
      */
     async stakeLPTokens(farmId, lpTokenType, amount, userAddress) {
-        if (process.env.SIMULATION_MODE === 'true') {
-            console.log(`[SIMULATION] Staking ${amount} LP tokens in farm ${farmId}`);
-            return {
-                success: true,
-                hash: '0xSIMULATED_STAKE_HASH_' + Date.now(),
-                farmId,
-                amount: amount.toString(),
-                protocol: 'meridian-farm',
-            };
-        }
-
         if (!this.serverAccount) {
             throw new Error('Server account not configured. Set SERVER_PRIVATE_KEY in .env');
         }
@@ -222,17 +194,6 @@ class MeridianFarmService {
      * Unstake LP tokens from a farm
      */
     async unstakeLPTokens(farmId, lpTokenType, amount, userAddress) {
-        if (process.env.SIMULATION_MODE === 'true') {
-            console.log(`[SIMULATION] Unstaking ${amount} LP tokens from farm ${farmId}`);
-            return {
-                success: true,
-                hash: '0xSIMULATED_UNSTAKE_HASH_' + Date.now(),
-                farmId,
-                amount: amount.toString(),
-                protocol: 'meridian-farm',
-            };
-        }
-
         if (!this.serverAccount) {
             throw new Error('Server account not configured');
         }
@@ -287,16 +248,6 @@ class MeridianFarmService {
      * Claim pending farm rewards
      */
     async claimFarmRewards(farmId, userAddress) {
-        if (process.env.SIMULATION_MODE === 'true') {
-            console.log(`[SIMULATION] Claiming rewards from farm ${farmId}`);
-            return {
-                success: true,
-                hash: '0xSIMULATED_CLAIM_HASH_' + Date.now(),
-                farmId,
-                protocol: 'meridian-farm',
-            };
-        }
-
         if (!this.serverAccount) {
             throw new Error('Server account not configured');
         }
@@ -339,11 +290,17 @@ class MeridianFarmService {
      * Calculate farm APR based on farm data
      */
     calculateFarmAPR(farm) {
+        // Calculate APR from real farm data if available
         // Formula: (rewardPerBlock * blocksPerYear * multiplier * rewardPrice) / (totalStaked * lpPrice) * 100
-        // Simplified for now - in production would use real price data
-        const baseAPR = 20; // Base 20% APR
-        const multiplierBonus = (farm.multiplier || 1) * 10;
-        return baseAPR + multiplierBonus;
+        if (farm.reward_per_block && farm.total_staked && parseFloat(farm.total_staked) > 0) {
+            const blocksPerYear = 365 * 24 * 60 * 60 / 0.5; // ~0.5s block time on Movement
+            const rewardsPerYear = parseFloat(farm.reward_per_block) * blocksPerYear;
+            const totalStaked = parseFloat(farm.total_staked);
+            const multiplier = farm.multiplier || 1;
+            return parseFloat(((rewardsPerYear * multiplier / totalStaked) * 100).toFixed(2));
+        }
+        // Return null if we can't calculate - caller should fetch from DefiLlama
+        return null;
     }
 }
 

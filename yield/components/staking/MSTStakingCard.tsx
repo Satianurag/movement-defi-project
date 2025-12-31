@@ -67,7 +67,7 @@ export function MSTStakingCard() {
                     Alert.alert('Success', `Staked ${amount} MST`);
                     setAmount('');
                 },
-                onError: (error) => Alert.alert('Error', error.message),
+                onError: (error: Error) => Alert.alert('Error', error.message),
             });
         } else {
             unstakeMST.mutate({ amount, userAddress }, {
@@ -75,7 +75,7 @@ export function MSTStakingCard() {
                     Alert.alert('Success', `Unstaked ${amount} MST`);
                     setAmount('');
                 },
-                onError: (error) => Alert.alert('Error', error.message),
+                onError: (error: Error) => Alert.alert('Error', error.message),
             });
         }
     };
@@ -84,7 +84,7 @@ export function MSTStakingCard() {
         if (!userAddress) return;
         claimRewards.mutate({ userAddress }, {
             onSuccess: () => Alert.alert('Success', 'Rewards claimed!'),
-            onError: (error) => Alert.alert('Error', error.message),
+            onError: (error: Error) => Alert.alert('Error', error.message),
         });
     };
 
