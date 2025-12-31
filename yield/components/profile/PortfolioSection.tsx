@@ -1,52 +1,63 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Card, CardContent } from '@/components/ui/card';
-import { LayersIcon, WalletIcon, TrendingUpIcon } from 'lucide-react-native';
+import { LayersIcon, WalletIcon, TrendingUpIcon, AlertCircleIcon } from 'lucide-react-native';
+import { usePortfolio, PortfolioPosition } from '@/lib/usePortfolio';
 
-// Interface for Portfolio Positions
-interface Position {
-    id: string;
-    name: string;
-    protocol: string;
-    strategy: string; // e.g., 'Zap Strategy', 'Staking', 'Lending'
-    amount: string;
-    apy: string;
-    icon: React.ElementType;
-    iconColor: string;
-    iconBg: string;
-}
-
-// Simulated Data (would come from API)
-const MOCK_POSITIONS: Position[] = [
-    {
-        id: '1',
-        name: 'MOVE-USDC LP',
-        protocol: 'Meridian',
-        strategy: 'Zap Strategy',
-        amount: '$850.00',
-        apy: '+0.8%',
-        icon: LayersIcon,
-        iconColor: 'text-blue-500',
-        iconBg: 'bg-blue-500/10'
-    },
-    {
-        id: '2',
-        name: 'Staked MOVE',
-        protocol: 'Echelon Market',
-        strategy: 'Lending',
-        amount: '$390.50',
-        apy: '+4.2%',
-        icon: WalletIcon,
-        iconColor: 'text-purple-500',
-        iconBg: 'bg-purple-500/10'
+// Icon mapping based on protocol
+const getPositionIcon = (protocol: string) => {
+    switch (protocol.toLowerCase()) {
+        case 'meridian':
+            return { icon: LayersIcon, color: 'text-blue-500', bg: 'bg-blue-500/10' };
+        case 'echelon market':
+        case 'echelon':
+            return { icon: WalletIcon, color: 'text-purple-500', bg: 'bg-purple-500/10' };
+        case 'satay finance':
+        case 'satay':
+            return { icon: TrendingUpIcon, color: 'text-emerald-500', bg: 'bg-emerald-500/10' };
+        default:
+            return { icon: WalletIcon, color: 'text-gray-500', bg: 'bg-gray-500/10' };
     }
-];
+};
 
 export function PortfolioSection() {
-    // efficient calculation of net worth
-    const totalNetWorth = "$1,240.50";
-    const netWorthChange = "+12.5%";
+    const { data: portfolio, isLoading, error } = usePortfolio();
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <View className="gap-4 pt-4 border-t border-border">
+                <View className="flex-row items-center justify-between">
+                    <Text className="text-xl font-bold text-foreground">My Positions</Text>
+                </View>
+                <View className="items-center justify-center py-8">
+                    <ActivityIndicator size="large" />
+                    <Text className="text-muted-foreground mt-2">Loading portfolio...</Text>
+                </View>
+            </View>
+        );
+    }
+
+    // Error or no data state
+    if (error || !portfolio?.positions?.length) {
+        return (
+            <View className="gap-4 pt-4 border-t border-border">
+                <View className="flex-row items-center justify-between">
+                    <Text className="text-xl font-bold text-foreground">My Positions</Text>
+                </View>
+                <Card className="p-6 items-center">
+                    <AlertCircleIcon size={32} className="text-muted-foreground mb-2" />
+                    <Text className="text-muted-foreground text-center">
+                        {error ? 'Failed to load positions' : 'No positions found'}
+                    </Text>
+                    <Text className="text-xs text-muted-foreground/60 text-center mt-1">
+                        Start earning by depositing into a protocol
+                    </Text>
+                </Card>
+            </View>
+        );
+    }
 
     return (
         <View className="gap-4 pt-4 border-t border-border">
@@ -63,29 +74,42 @@ export function PortfolioSection() {
                 <Card className="flex-1 bg-primary/5 border-primary/10">
                     <CardContent className="p-4">
                         <Text className="text-xs text-muted-foreground mb-1">Total Net Worth</Text>
-                        <Text className="text-2xl font-bold text-foreground">{totalNetWorth}</Text>
-                        <Text className="text-xs text-emerald-500 font-medium">{netWorthChange} (7d)</Text>
+                        <Text className="text-2xl font-bold text-foreground">
+                            {portfolio.totalNetWorth}
+                        </Text>
+                        {portfolio.netWorthChange && (
+                            <Text className="text-xs text-emerald-500 font-medium">
+                                {portfolio.netWorthChange}
+                            </Text>
+                        )}
                     </CardContent>
                 </Card>
             </View>
 
             {/* Positions List */}
             <View className="gap-3">
-                {MOCK_POSITIONS.map((pos) => (
-                    <Card key={pos.id} className="flex-row items-center p-4 gap-4">
-                        <View className={`h-10 w-10 rounded-full items-center justify-center ${pos.iconBg}`}>
-                            <pos.icon size={20} className={pos.iconColor} />
-                        </View>
-                        <View className="flex-1">
-                            <Text className="font-semibold text-foreground">{pos.name}</Text>
-                            <Text className="text-xs text-muted-foreground">{pos.protocol} • {pos.strategy}</Text>
-                        </View>
-                        <View className="items-end">
-                            <Text className="font-bold text-foreground">{pos.amount}</Text>
-                            <Text className="text-xs text-emerald-500">{pos.apy} APY</Text>
-                        </View>
-                    </Card>
-                ))}
+                {portfolio.positions.map((pos: PortfolioPosition) => {
+                    const { icon: Icon, color, bg } = getPositionIcon(pos.protocol);
+                    return (
+                        <Card key={pos.id} className="flex-row items-center p-4 gap-4">
+                            <View className={`h-10 w-10 rounded-full items-center justify-center ${bg}`}>
+                                <Icon size={20} className={color} />
+                            </View>
+                            <View className="flex-1">
+                                <Text className="font-semibold text-foreground">{pos.name}</Text>
+                                <Text className="text-xs text-muted-foreground">
+                                    {pos.protocol} • {pos.strategy}
+                                </Text>
+                            </View>
+                            <View className="items-end">
+                                <Text className="font-bold text-foreground">{pos.amount}</Text>
+                                {pos.apy && (
+                                    <Text className="text-xs text-emerald-500">{pos.apy} APY</Text>
+                                )}
+                            </View>
+                        </Card>
+                    );
+                })}
             </View>
         </View>
     );

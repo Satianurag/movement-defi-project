@@ -27,31 +27,27 @@ class SwapService {
      * @param {BigInt} reserveOut - Output token reserve
      * @param {number} amountIn - Amount to swap
      * @returns {number} Slippage as decimal (e.g., 0.005 = 0.5%)
+     * @throws {Error} If reserves are invalid
      */
     calculateRealSlippage(reserveIn, reserveOut, amountIn) {
-        try {
-            const x = Number(reserveIn);
-            const y = Number(reserveOut);
-            const dx = parseFloat(amountIn);
+        const x = Number(reserveIn);
+        const y = Number(reserveOut);
+        const dx = parseFloat(amountIn);
 
-            if (x === 0 || y === 0) {
-                return 0.02; // Default 2% if no reserves
-            }
-
-            // AMM constant product: (x + dx)(y - dy) = xy
-            // dy = y * dx / (x + dx)
-            const spotPrice = y / x;
-            const expectedOutput = dx * spotPrice;
-            const actualOutput = (y * dx) / (x + dx);
-
-            // Slippage = (expected - actual) / expected
-            const slippage = (expectedOutput - actualOutput) / expectedOutput;
-
-            return Math.max(0.001, Math.min(slippage, 0.10)); // Cap between 0.1% and 10%
-        } catch (error) {
-            console.warn('Failed to calculate real slippage, using estimate:', error.message);
-            return 0.01; // Default 1% estimate
+        if (x === 0 || y === 0) {
+            throw new Error('Invalid pool: zero reserves');
         }
+
+        // AMM constant product: (x + dx)(y - dy) = xy
+        // dy = y * dx / (x + dx)
+        const spotPrice = y / x;
+        const expectedOutput = dx * spotPrice;
+        const actualOutput = (y * dx) / (x + dx);
+
+        // Slippage = (expected - actual) / expected
+        const slippage = (expectedOutput - actualOutput) / expectedOutput;
+
+        return Math.max(0.001, Math.min(slippage, 0.10)); // Cap between 0.1% and 10%
     }
 
     /**
@@ -75,17 +71,17 @@ class SwapService {
             const valueInUSD = parseFloat(amountIn) * priceIn;
             const estimatedOutput = valueInUSD / priceOut;
 
-            // 3. Calculate Real Slippage from AMM Reserves
-            let slipFactor = 0.01; // Default fallback
+            // 3. Calculate Real Slippage from AMM Reserves (required)
+            let slipFactor;
+            let slippageSource = 'amm_reserves';
+
             try {
                 const reserves = await this.meridianService.getReserves(tokenIn, tokenOut);
                 slipFactor = this.calculateRealSlippage(reserves.reserveA, reserves.reserveB, amountIn);
             } catch (reserveError) {
-                console.warn('Could not fetch reserves for slippage calculation:', reserveError.message);
-                // Use price-based estimate as fallback
-                const isBlueChip = ['MOVE', 'USDC', 'ETH', 'BTC'].includes(tokenIn) &&
-                    ['MOVE', 'USDC', 'ETH', 'BTC'].includes(tokenOut);
-                slipFactor = isBlueChip ? 0.005 : 0.02;
+                // REMOVED: Hardcoded slippage fallbacks
+                // If we can't get real reserves, we can't provide an accurate quote
+                throw new Error(`Cannot calculate slippage: ${reserveError.message}. Pool may not exist.`);
             }
 
             const guaranteedOutput = estimatedOutput * (1 - slipFactor);

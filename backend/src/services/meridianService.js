@@ -175,20 +175,10 @@ class MeridianService {
 
     /**
      * Get reserves for a pair to calculate optimal swap
+     * @throws {Error} If reserves cannot be fetched from on-chain
      */
     async getReserves(tokenA, tokenB) {
         try {
-            // In a real implementation, we would query the resource account for the pair
-            // For this implementation, we'll try to use a view function if available, 
-            // or return a mock/estimate if we can't easily query the move resource structure directly without ABI.
-            // Assuming Meridian has a `get_reserves` view function:
-
-            // Note: Use ADDRESSES.meridian.router or a specific Swap/Pair contract
-            // If view function is not standard, we might need to query resources.
-
-            // Fallback for now: fetch from API or mock if on testnet, 
-            // but let's try to simulate a resource query or assume a view function exists.
-
             const payload = {
                 function: `${this.routerAddress}::router::get_reserves`,
                 type_arguments: [tokenA, tokenB],
@@ -201,9 +191,9 @@ class MeridianService {
                 reserveB: BigInt(result[1]),
             };
         } catch (error) {
-            console.warn('Failed to fetch reserves, defaulting to 1:1 ratio for safety check (fallback):', error.message);
-            // Fallback for demo/testnet if view fails
-            return { reserveA: 1000000000n, reserveB: 1000000n }; // 1000 MOVE : 1 USDC approx
+            // REMOVED: Mock fallback reserves
+            // Swap service must handle this error gracefully
+            throw new Error(`Failed to fetch reserves for ${tokenA}/${tokenB}: ${error.message}`);
         }
     }
 }

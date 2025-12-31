@@ -11,13 +11,42 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TokenSelector, Token } from '@/components/swap/TokenSelector';
 import { RouteSummary } from '@/components/swap/RouteSummary';
 import { useWallet } from '@/lib/useWallet';
+import { useQuery } from '@tanstack/react-query';
 
 // Constants
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
+// Fetch tokens from backend API
+async function fetchSupportedTokens(): Promise<Token[]> {
+    const response = await fetch(`${API_URL}/api/swap/tokens`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch tokens');
+    }
+    const json = await response.json();
+    if (!json.success) {
+        throw new Error(json.error || 'Failed to fetch tokens');
+    }
+    // Map API response to Token format with default balance
+    return json.data.map((t: any) => ({
+        symbol: t.symbol,
+        name: t.name,
+        decimals: t.decimals,
+        balance: '0.00', // Balance will be fetched separately when wallet connected
+        logoURI: t.logoURI
+    }));
+}
+
 export default function SwapScreen() {
     const insets = useSafeAreaInsets();
     const { address, isReady } = useWallet();
+
+    // Fetch supported tokens from API
+    const { data: tokens = [], isLoading: tokensLoading } = useQuery({
+        queryKey: ['supportedTokens'],
+        queryFn: fetchSupportedTokens,
+        staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+        retry: 2
+    });
 
     // State
     const [tokenIn, setTokenIn] = useState<Token>({ symbol: 'MOVE', name: 'Movement', decimals: 8, balance: '0.00' });
@@ -27,13 +56,15 @@ export default function SwapScreen() {
     const [quote, setQuote] = useState<any>(null);
     const [showTokenSelector, setShowTokenSelector] = useState<'in' | 'out' | null>(null);
 
-    // Mock Token List (In real app, fetch from API)
-    const TOKENS: Token[] = [
-        { symbol: 'MOVE', name: 'Movement', decimals: 8, balance: '124.50' },
-        { symbol: 'USDC', name: 'USD Coin', decimals: 6, balance: '0.00' },
-        { symbol: 'WBTC', name: 'Wrapped Bitcoin', decimals: 8, balance: '0.00' },
-        { symbol: 'WETH', name: 'Wrapped Ether', decimals: 18, balance: '0.00' },
-    ];
+    // Update tokenIn/tokenOut when tokens are loaded
+    useEffect(() => {
+        if (tokens.length > 0) {
+            const moveToken = tokens.find(t => t.symbol === 'MOVE') || tokens[0];
+            const usdcToken = tokens.find(t => t.symbol === 'USDC') || tokens[1];
+            if (moveToken) setTokenIn(moveToken);
+            if (usdcToken) setTokenOut(usdcToken);
+        }
+    }, [tokens]);
 
     // Debounced Quote Fetching
     useEffect(() => {
@@ -45,8 +76,6 @@ export default function SwapScreen() {
 
             setLoading(true);
             try {
-                // Determine if running locally or on device for API URL
-                // For Android Emulator logic uses 10.0.2.2 usually, but here handled by env or utility
                 const response = await fetch(`${API_URL}/api/swap/quote?tokenIn=${tokenIn.symbol}&tokenOut=${tokenOut.symbol}&amountIn=${amountIn}`);
                 const data = await response.json();
 
@@ -54,9 +83,11 @@ export default function SwapScreen() {
                     setQuote(data.data);
                 } else {
                     console.error("Quote Error:", data.error);
+                    setQuote(null);
                 }
             } catch (e) {
                 console.error("Failed to fetch quote", e);
+                setQuote(null);
             } finally {
                 setLoading(false);
             }
@@ -260,7 +291,7 @@ export default function SwapScreen() {
                     if (showTokenSelector === 'in') setTokenIn(token);
                     else setTokenOut(token);
                 }}
-                tokens={TOKENS}
+                tokens={tokens}
                 selectedToken={showTokenSelector === 'in' ? tokenIn.symbol : tokenOut.symbol}
             />
         </View>

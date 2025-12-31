@@ -197,13 +197,13 @@ class MovementDefiAggregator {
                         this.identifyProtocol(bal.assetType) === 'meridian' ? 'Liquidity Pool' : 'Holding',
                 amount: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(bal.valueUSD),
                 rawAmount: bal.valueUSD,
-                apy: 'N/A', // TODO: Map real APY from protocol metrics here
+                apy: null, // Real APY requires protocol-specific lookup
                 tokenSymbol: bal.asset
             }));
 
             return {
                 totalNetWorth: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalValueUSD),
-                netWorthChange: '+0.00% (7d)', // TODO: Calculate change from historical data
+                netWorthChange: null, // Requires historical balance tracking
                 positions: formattedPositions, // New Frontend structure
                 // Keep original data for backward compatibility
                 wallet: walletAddress,
@@ -301,27 +301,15 @@ class MovementDefiAggregator {
     }
 
     /**
-     * Get APY estimate for DefiLlama protocols
-     * Only used as fallback when on-chain data unavailable
-     * Note: These are ESTIMATES, not real APY
+     * Get APY for DefiLlama protocols
+     * Returns null when real data is unavailable - no fake estimates
+     * APY should come from DefiLlama yields API or on-chain data
      */
     getDefiLlamaAPYEstimate(protocol) {
-        // Category-based fallback ranges (more reliable than extrapolation)
-        const categoryRanges = {
-            'Yield Aggregator': '8-15%',
-            'Dexs': '5-25%',
-            'Lending': '3-12%',
-            'Liquid Staking': '5-10%',
-            'CDP': '2-8%',
-            'Derivatives': '5-20%',
-            'NFT Lending': '10-30%',
-            'RWA': '5-15%',
-        };
-
-        // Return category range instead of unreliable 7-day extrapolation
-        // The problem with extrapolating 7-day change: a 10% weekly change 
-        // would extrapolate to astronomical APY which is misleading
-        return categoryRanges[protocol.category] || 'See protocol';
+        // REMOVED: Category-based fake estimates
+        // Real APY must come from DefiLlama yields API: /yields/pools?chain=movement
+        // For protocols with on-chain data (Satay), APY is calculated from vault profits
+        return null;
     }
 
     /**
