@@ -71,6 +71,28 @@ class MovementDefiAggregator {
     }
 
     /**
+     * Get user transaction history
+     */
+    async getUserHistory(walletAddress) {
+        try {
+            const rawHistory = await this.indexer.getUserTransactions(walletAddress);
+            return rawHistory.map(tx => ({
+                hash: tx.hash,
+                version: tx.version,
+                timestamp: tx.timestamp,
+                function: tx.entry_function_id_str || 'script',
+                success: tx.success,
+                gasUsed: tx.gas_used,
+                gasPrice: tx.gas_unit_price,
+                sender: tx.sender
+            }));
+        } catch (error) {
+            console.error('Get user history error:', error.message);
+            return [];
+        }
+    }
+
+    /**
      * Get user positions with protocol identification
      */
     async getUserPositions(walletAddress) {
@@ -338,6 +360,25 @@ class MovementDefiAggregator {
      */
     async getEchelonMarket(asset) {
         return await this.echelon.getMarketInfo(asset);
+    }
+
+    /**
+     * Get protocol historical TVL
+     */
+    async getProtocolHistory(slug) {
+        try {
+            // Check if it's a satay vault
+            if (slug.startsWith('satay-')) {
+                // Satay doesn't return history yet in this version, return empty
+                // OR construct synthetic history if really needed (but per "no mock data", return empty)
+                return [];
+            }
+
+            return await this.defillama.getHistoricalTVL(slug);
+        } catch (error) {
+            console.error('Aggregator history error:', error.message);
+            return [];
+        }
     }
 }
 

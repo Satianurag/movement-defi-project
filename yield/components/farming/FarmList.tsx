@@ -5,11 +5,21 @@ import { FarmCard } from './FarmCard';
 import { useFarms, useUserFarmPositions, useStakeLP, useUnstakeLP, Farm } from '@/lib/useFarms';
 import { useWallet } from '@/lib/useWallet';
 import { LeafIcon } from 'lucide-react-native';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from '@/components/ui/card';
 
 export function FarmList() {
     const { address: userAddress } = useWallet();
     const { data: farms, isLoading, error, refetch, isRefetching } = useFarms();
     const { data: positions } = useUserFarmPositions(userAddress);
+
+    console.log('FarmList render:', {
+        isLoading,
+        error: error?.message,
+        farmsCount: farms?.length,
+        firstFarm: farms?.[0]
+    });
+
     const stakeLP = useStakeLP();
     const unstakeLP = useUnstakeLP();
 
@@ -39,9 +49,21 @@ export function FarmList() {
 
     if (isLoading) {
         return (
-            <View className="flex-1 items-center justify-center py-12">
-                <ActivityIndicator size="large" className="text-primary" />
-                <Text className="text-muted-foreground mt-4">Loading farms...</Text>
+            <View className="p-4 gap-4">
+                {[1, 2].map((i) => (
+                    <Card key={i} className="p-4">
+                        <View className="flex-row items-center gap-3 mb-4">
+                            <Skeleton className="h-10 w-10 rounded-full" />
+                            <View className="gap-2">
+                                <Skeleton className="h-4 w-32" />
+                            </View>
+                        </View>
+                        <View className="gap-2">
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-2/3" />
+                        </View>
+                    </Card>
+                ))}
             </View>
         );
     }
@@ -65,16 +87,8 @@ export function FarmList() {
     }
 
     return (
-        <ScrollView
-            className="flex-1"
-            contentContainerClassName="p-4"
-            refreshControl={
-                <RefreshControl
-                    refreshing={isRefetching}
-                    onRefresh={() => refetch()}
-                />
-            }
-        >
+        <View className="w-full gap-4">
+
             {/* Header */}
             <View className="flex-row items-center gap-2 mb-4">
                 <LeafIcon size={24} className="text-emerald-500" />
@@ -95,6 +109,6 @@ export function FarmList() {
                     onUnstake={handleUnstake(farm.farmId, farm.lpToken)}
                 />
             ))}
-        </ScrollView>
+        </View>
     );
 }

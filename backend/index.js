@@ -124,6 +124,40 @@ app.get('/api/defi/metrics', async (req, res) => {
     }
 });
 
+// NEW: Get user transaction history
+app.get('/api/history/:address', async (req, res) => {
+    try {
+        const { address } = req.params;
+        const history = await aggregator.getUserHistory(address);
+        res.json({
+            success: true,
+            data: history
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// NEW: Get protocol historical TVL
+app.get('/api/defi/history/:slug', async (req, res) => {
+    try {
+        const { slug } = req.params;
+        const history = await aggregator.getProtocolHistory(slug);
+        res.json({
+            success: true,
+            data: history
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // ============================================
 // SATAY FINANCE ENDPOINTS (Real On-Chain Data)
 // ============================================

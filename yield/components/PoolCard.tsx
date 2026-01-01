@@ -8,8 +8,10 @@ import {
     CoinsIcon,
     PercentIcon,
     LayersIcon,
+    HeartIcon,
 } from 'lucide-react-native';
-import { View, Pressable, Platform } from 'react-native';
+import { View, Pressable, Platform, TouchableOpacity } from 'react-native';
+import { useFavorites } from '@/context/FavoritesContext';
 
 // Category color mapping for visual distinction
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -105,6 +107,16 @@ export function PoolCard({ pool, onPress }: PoolCardProps) {
     const { value: changeValue, isPositive } = parseChange(pool.change_7d);
     const apyColor = getApyColorClass(pool.apy);
 
+    // Safety check for pool.slug or pool.name as ID
+    const poolId = pool.slug || pool.name;
+    const { isFavorite, toggleFavorite } = useFavorites();
+    const isFav = isFavorite(poolId);
+
+    const handleFavorite = (e: any) => {
+        e.stopPropagation();
+        toggleFavorite(poolId);
+    };
+
     return (
         <Card className="overflow-hidden">
             <Pressable
@@ -135,6 +147,18 @@ export function PoolCard({ pool, onPress }: PoolCardProps) {
                             {pool.category}
                         </Text>
                     </Badge>
+
+                    {/* Favorite Button */}
+                    <TouchableOpacity
+                        onPress={handleFavorite}
+                        className="ml-2 h-8 w-8 items-center justify-center rounded-full active:bg-muted/50"
+                    >
+                        <HeartIcon
+                            size={20}
+                            className={isFav ? "text-red-500 fill-red-500" : "text-muted-foreground"}
+                            fill={isFav ? "currentColor" : "none"}
+                        />
+                    </TouchableOpacity>
                 </View>
 
                 {/* Metrics Grid */}

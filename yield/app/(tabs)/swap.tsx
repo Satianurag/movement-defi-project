@@ -10,7 +10,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TokenSelector, Token } from '@/components/swap/TokenSelector';
 import { RouteSummary } from '@/components/swap/RouteSummary';
+import { SlippageModal } from '@/components/swap/SlippageModal';
 import { useWallet } from '@/lib/useWallet';
+import { useToast } from '@/context/ToastContext';
 import { useQuery } from '@tanstack/react-query';
 
 // Constants
@@ -39,6 +41,7 @@ async function fetchSupportedTokens(): Promise<Token[]> {
 export default function SwapScreen() {
     const insets = useSafeAreaInsets();
     const { address, isReady } = useWallet();
+    const { showToast } = useToast();
 
     // Fetch supported tokens from API
     const { data: tokens = [], isLoading: tokensLoading } = useQuery({
@@ -55,6 +58,8 @@ export default function SwapScreen() {
     const [loading, setLoading] = useState(false);
     const [quote, setQuote] = useState<any>(null);
     const [showTokenSelector, setShowTokenSelector] = useState<'in' | 'out' | null>(null);
+    const [showSlippageModal, setShowSlippageModal] = useState(false);
+    const [slippage, setSlippage] = useState(0.5);
 
     // Update tokenIn/tokenOut when tokens are loaded
     useEffect(() => {
@@ -106,7 +111,7 @@ export default function SwapScreen() {
 
     const handleSwap = async () => {
         if (!address) {
-            Alert.alert('Connect Wallet', 'Please connect your wallet first.');
+            showToast('Please connect your wallet first.', 'warning', 'Connect Wallet');
             return;
         }
 
@@ -120,20 +125,21 @@ export default function SwapScreen() {
                     tokenOut: tokenOut.symbol,
                     amountIn,
                     minAmountOut: quote?.minReceived,
-                    userAddress: address
+                    userAddress: address,
+                    slippage
                 })
             });
             const data = await response.json();
 
             if (data.success) {
-                Alert.alert('Success!', `Swapped ${amountIn} ${tokenIn.symbol} for ${quote?.minReceived} ${tokenOut.symbol}`);
+                showToast(`Swapped ${amountIn} ${tokenIn.symbol}`, 'success', 'Swap Successful!');
                 setAmountIn('');
                 setQuote(null);
             } else {
-                Alert.alert('Transaction Failed', data.error);
+                showToast(data.error || 'Transaction failed', 'error', 'Swap Failed');
             }
         } catch (e) {
-            Alert.alert('Error', 'Failed to execute swap');
+            showToast('Failed to execute swap', 'error', 'Error');
         } finally {
             setLoading(false);
         }
@@ -156,10 +162,9 @@ export default function SwapScreen() {
                 contentContainerStyle={{ paddingTop: insets.top + 20, paddingBottom: 100 }}
                 keyboardShouldPersistTaps="handled"
             >
-                {/* Header */}
                 <View className="px-6 flex-row items-center justify-between mb-8">
                     <Text className="text-3xl font-bold tracking-tight">Swap</Text>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" onPress={() => setShowSlippageModal(true)}>
                         <SettingsIcon size={24} className="text-foreground" />
                     </Button>
                 </View>
@@ -293,6 +298,13 @@ export default function SwapScreen() {
                 }}
                 tokens={tokens}
                 selectedToken={showTokenSelector === 'in' ? tokenIn.symbol : tokenOut.symbol}
+            />
+
+            <SlippageModal
+                visible={showSlippageModal}
+                onClose={() => setShowSlippageModal(false)}
+                currentSlippage={slippage}
+                onSelectSlippage={setSlippage}
             />
         </View>
     );

@@ -8,6 +8,9 @@ import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import { PrivyProvider } from '@privy-io/expo';
 import { SmartWalletsProvider } from '@privy-io/expo/smart-wallets';
+import { ToastProvider } from '@/context/ToastContext';
+import { FavoritesProvider } from '@/context/FavoritesContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -17,6 +20,9 @@ export {
 // Privy configuration
 const PRIVY_APP_ID = process.env.EXPO_PUBLIC_PRIVY_APP_ID || '';
 const PRIVY_CLIENT_ID = process.env.EXPO_PUBLIC_PRIVY_CLIENT_ID || '';
+
+// Create a client
+const queryClient = new QueryClient();
 
 // Movement Testnet Configuration
 const movementTestnet = {
@@ -70,9 +76,15 @@ export default function RootLayout() {
       clientId={PRIVY_CLIENT_ID}
       supportedChains={[movementTestnet]}
     >
-      <SmartWalletsProvider>
-        <NavigationLayout />
-      </SmartWalletsProvider>
+      <QueryClientProvider client={queryClient}>
+        <SmartWalletsProvider>
+          <ToastProvider>
+            <FavoritesProvider>
+              <NavigationLayout />
+            </FavoritesProvider>
+          </ToastProvider>
+        </SmartWalletsProvider>
+      </QueryClientProvider>
     </PrivyProvider>
   );
 }

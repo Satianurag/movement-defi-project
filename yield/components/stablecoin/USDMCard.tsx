@@ -14,6 +14,7 @@ import {
 } from 'lucide-react-native';
 import { useUSDMPosition, useMintUSDM, useBurnUSDM } from '@/lib/useUSDM';
 import { useWallet } from '@/lib/useWallet';
+import { useToast } from '@/context/ToastContext';
 
 function formatAmount(value: string | number): string {
     const num = typeof value === 'string' ? parseFloat(value) : value;
@@ -34,6 +35,7 @@ export function USDMCard() {
     const [collateralAmount, setCollateralAmount] = useState('');
     const [usdmAmount, setUsdmAmount] = useState('');
     const { address: userAddress } = useWallet();
+    const { showToast } = useToast();
 
     const { data: position } = useUSDMPosition(userAddress, collateralType);
     const mintUSDM = useMintUSDM();
@@ -54,13 +56,13 @@ export function USDMCard() {
 
     const handleSubmit = () => {
         if (!userAddress) {
-            Alert.alert('Wallet Required', 'Please connect your wallet first');
+            showToast('Please connect your wallet first', 'warning', 'Wallet Required');
             return;
         }
 
         if (mode === 'mint') {
             if (!collateralAmount || !usdmAmount) {
-                Alert.alert('Invalid Input', 'Please enter both collateral and USDM amounts');
+                showToast('Please enter both collateral and USDM amounts', 'warning', 'Invalid Input');
                 return;
             }
             mintUSDM.mutate({
@@ -70,15 +72,15 @@ export function USDMCard() {
                 userAddress
             }, {
                 onSuccess: () => {
-                    Alert.alert('Success', `Minted ${usdmAmount} USDM`);
+                    showToast(`Minted ${usdmAmount} USDM`, 'success', 'Success');
                     setCollateralAmount('');
                     setUsdmAmount('');
                 },
-                onError: (error: Error) => Alert.alert('Error', error.message),
+                onError: (error: Error) => showToast(error.message, 'error', 'Error'),
             });
         } else {
             if (!usdmAmount) {
-                Alert.alert('Invalid Input', 'Please enter USDM amount to burn');
+                showToast('Please enter USDM amount to burn', 'warning', 'Invalid Input');
                 return;
             }
             burnUSDM.mutate({
@@ -87,10 +89,10 @@ export function USDMCard() {
                 userAddress
             }, {
                 onSuccess: () => {
-                    Alert.alert('Success', `Burned ${usdmAmount} USDM`);
+                    showToast(`Burned ${usdmAmount} USDM`, 'success', 'Success');
                     setUsdmAmount('');
                 },
-                onError: (error: Error) => Alert.alert('Error', error.message),
+                onError: (error: Error) => showToast(error.message, 'error', 'Error'),
             });
         }
     };

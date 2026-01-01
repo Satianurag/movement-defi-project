@@ -19,6 +19,7 @@ import {
     usePendingRewards
 } from '@/lib/useFarms';
 import { useWallet } from '@/lib/useWallet';
+import { useToast } from '@/context/ToastContext';
 
 interface FarmCardProps {
     farm: Farm;
@@ -45,6 +46,7 @@ export function FarmCard({ farm, position, onStake, onUnstake }: FarmCardProps) 
     const [stakeAmount, setStakeAmount] = useState('');
     const [mode, setMode] = useState<'stake' | 'unstake'>('stake');
     const { address: userAddress } = useWallet();
+    const { showToast } = useToast();
 
     const { data: pendingRewards } = usePendingRewards(farm.farmId, userAddress);
     const claimRewards = useClaimFarmRewards();
@@ -54,7 +56,7 @@ export function FarmCard({ farm, position, onStake, onUnstake }: FarmCardProps) 
 
     const handleStake = () => {
         if (!stakeAmount || parseFloat(stakeAmount) <= 0) {
-            Alert.alert('Invalid Amount', 'Please enter a valid amount to stake');
+            showToast('Please enter a valid amount to stake', 'warning', 'Invalid Amount');
             return;
         }
         onStake?.(stakeAmount);
@@ -63,7 +65,7 @@ export function FarmCard({ farm, position, onStake, onUnstake }: FarmCardProps) 
 
     const handleUnstake = () => {
         if (!stakeAmount || parseFloat(stakeAmount) <= 0) {
-            Alert.alert('Invalid Amount', 'Please enter a valid amount to unstake');
+            showToast('Please enter a valid amount to unstake', 'warning', 'Invalid Amount');
             return;
         }
         onUnstake?.(stakeAmount);
@@ -72,7 +74,7 @@ export function FarmCard({ farm, position, onStake, onUnstake }: FarmCardProps) 
 
     const handleClaim = () => {
         if (!userAddress) {
-            Alert.alert('Wallet Required', 'Please connect your wallet first');
+            showToast('Please connect your wallet first', 'warning', 'Wallet Required');
             return;
         }
         claimRewards.mutate({ farmId: farm.farmId, userAddress });

@@ -16,17 +16,24 @@ import {
     WalletIcon,
     PlusIcon,
     CheckCircleIcon,
+
+    ArchiveIcon,
+    MoonIcon,
+    SunIcon
 } from 'lucide-react-native';
 import { Stack, router } from 'expo-router';
 import { useWallet } from '@/lib/useWallet';
 import { usePrivy } from '@/lib/privy-hooks';
-import { MFASetup } from '@/components/security/MFASetup';
+import { useColorScheme } from 'nativewind';
+import { Switch } from 'react-native';
 import { WalletRecovery } from '@/components/wallet/WalletRecovery';
+import { MFASetup } from '@/components/wallet/MFASetup';
 
 export default function SettingsScreen() {
     const { user, isAuthenticated, logout } = useWallet();
     const [showMFASetup, setShowMFASetup] = useState(false);
     const [showWalletRecovery, setShowWalletRecovery] = useState(false);
+    const { colorScheme, toggleColorScheme, setColorScheme } = useColorScheme();
 
     // Check if MFA is enabled (simplified check)
     const hasMFA = (user as any)?.mfa_methods?.length > 0;
@@ -53,6 +60,38 @@ export default function SettingsScreen() {
                         <Text className="text-muted-foreground text-center">
                             Customize your app experience
                         </Text>
+                    </View>
+
+                    {/* Appearance Section */}
+                    <View className="gap-3">
+                        <Text className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                            Appearance
+                        </Text>
+                        <Card>
+                            <View className="flex-row items-center justify-between p-4">
+                                <View className="flex-row items-center gap-3">
+                                    <View className="h-10 w-10 rounded-full bg-slate-500/10 items-center justify-center">
+                                        {colorScheme === 'dark' ? (
+                                            <MoonIcon size={20} className="text-slate-500" />
+                                        ) : (
+                                            <SunIcon size={20} className="text-slate-500" />
+                                        )}
+                                    </View>
+                                    <View>
+                                        <Text className="font-medium text-foreground">Dark Mode</Text>
+                                        <Text className="text-xs text-muted-foreground">
+                                            {colorScheme === 'dark' ? 'Dark theme enabled' : 'Light theme enabled'}
+                                        </Text>
+                                    </View>
+                                </View>
+                                <Switch
+                                    value={colorScheme === 'dark'}
+                                    onValueChange={toggleColorScheme}
+                                    trackColor={{ false: '#767577', true: '#3b82f6' }}
+                                    thumbColor={colorScheme === 'dark' ? '#ffffff' : '#f4f3f4'}
+                                />
+                            </View>
+                        </Card>
                     </View>
 
                     {/* Security Section */}
@@ -150,6 +189,27 @@ export default function SettingsScreen() {
                                         <PlusIcon size={16} className="text-muted-foreground" />
                                         <ChevronRightIcon size={20} className="text-muted-foreground" />
                                     </View>
+                                </Pressable>
+
+                                <Separator />
+
+                                {/* Transaction History */}
+                                <Pressable
+                                    onPress={() => router.push('/history')}
+                                    className="flex-row items-center justify-between p-4 active:bg-muted"
+                                >
+                                    <View className="flex-row items-center gap-3">
+                                        <View className="h-10 w-10 rounded-full bg-blue-500/10 items-center justify-center">
+                                            <ArchiveIcon size={20} className="text-blue-500" />
+                                        </View>
+                                        <View>
+                                            <Text className="font-medium text-foreground">Transaction History</Text>
+                                            <Text className="text-xs text-muted-foreground">
+                                                View your past transactions
+                                            </Text>
+                                        </View>
+                                    </View>
+                                    <ChevronRightIcon size={20} className="text-muted-foreground" />
                                 </Pressable>
                             </Card>
                         </View>

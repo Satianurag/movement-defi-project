@@ -56,6 +56,32 @@ class GraphQLIndexerFetcher {
         const result = await this.query(query, { limit });
         return result?.current_fungible_asset_balances || [];
     }
+
+    async getUserTransactions(address, limit = 50) {
+        const query = `
+        query GetUserTransactions($address: String, $limit: Int) {
+            user_transactions(
+                limit: $limit
+                order_by: {timestamp: desc}
+                where: {sender: {_eq: $address}}
+            ) {
+                version
+                hash
+                sender
+                sequence_number
+                success
+                timestamp
+                entry_function_id_str
+                gas_unit_price
+                max_gas_amount
+                gas_used
+                vm_status
+            }
+        }
+    `;
+        const result = await this.query(query, { address, limit });
+        return result?.user_transactions || [];
+    }
 }
 
 module.exports = GraphQLIndexerFetcher;

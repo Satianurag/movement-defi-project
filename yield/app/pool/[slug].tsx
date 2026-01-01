@@ -32,6 +32,10 @@ import { PoolData } from '@/components/PoolCard';
 import { useWallet } from '@/lib/useWallet';
 import { useProtocol, TransactionResult } from '@/lib/useProtocol';
 import { ZapTransactionModal, ZapStep } from '@/components/ZapTransactionModal';
+import { PriceChart } from '@/components/charts/PriceChart';
+import { useToast } from '@/context/ToastContext';
+import { GasFeePreview } from '@/components/GasFeePreview';
+import { BorrowRepayModal } from '@/components/lending/BorrowRepayModal';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000';
 
@@ -93,7 +97,11 @@ export default function PoolDetailScreen() {
     const [zapStep, setZapStep] = useState<ZapStep>('initiating');
     const [zapTxHash, setZapTxHash] = useState<string | undefined>(undefined);
     const [zapError, setZapError] = useState<string | undefined>(undefined);
+    const [historyData, setHistoryData] = useState([]);
+    const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+    const [showBorrowModal, setShowBorrowModal] = useState(false);
     const [showZapModal, setShowZapModal] = useState(false);
+    const { showToast } = useToast();
 
     const [isWithdrawing, setIsWithdrawing] = useState(false);
 
@@ -142,6 +150,31 @@ export default function PoolDetailScreen() {
             console.error('Failed to fetch total TVL:', error);
         }
     }, []);
+
+    // Fetch history data
+    useEffect(() => {
+        if (!slug) return;
+        const fetchHistory = async () => {
+            setIsHistoryLoading(true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/defi/history/${slug}`);
+                const json = await response.json();
+                if (json.success && Array.isArray(json.data)) {
+                    // Format for chart: { date: number, value: number }
+                    const formatted = json.data.map((item: any) => ({
+                        date: item.date * 1000, // API uses seconds, JS uses ms
+                        value: item.tvl
+                    }));
+                    setHistoryData(formatted);
+                }
+            } catch (error) {
+                console.error('Failed to fetch history:', error);
+            } finally {
+                setIsHistoryLoading(false);
+            }
+        };
+        fetchHistory();
+    }, [slug]);
 
     useEffect(() => {
         fetchData();
@@ -222,7 +255,7 @@ export default function PoolDetailScreen() {
             const targetAddress = smartWalletAddress || address;
 
             if (!targetAddress) {
-                Alert.alert('No Wallet', 'Please create a wallet first.');
+                showToast('Please create a wallet first.', 'error', 'No Wallet');
                 setIsWithdrawing(false);
                 return;
             }
@@ -233,16 +266,17 @@ export default function PoolDetailScreen() {
             const result = await withdraw(pool?.slug || 'echelon', asset, amount, targetAddress);
 
             if (result.success) {
-                Alert.alert(
-                    'Withdraw Successful',
-                    `Withdrawn from ${result.protocol}!\nHash: ${result.hash?.slice(0, 10)}...`
+                showToast(
+                    `Withdrawn from ${result.protocol}!`,
+                    'success',
+                    'Withdraw Successful'
                 );
             } else {
                 throw new Error(result.error || 'Withdraw failed');
             }
         } catch (error) {
             console.error('Withdraw error:', error);
-            Alert.alert('Withdraw Failed', error instanceof Error ? error.message : 'Unknown error');
+            showToast(error instanceof Error ? error.message : 'Unknown error', 'error', 'Withdraw Failed');
         } finally {
             setIsWithdrawing(false);
         }
@@ -578,7 +612,12 @@ export default function PoolDetailScreen() {
                 </View>
 
                 {/* Action Buttons */}
+                {/* Action Buttons */}
                 <View className="px-6 mt-6 gap-3">
+                    <View className="flex-row items-center justify-between bg-muted/30 p-2 rounded-lg">
+                        <Text className="text-sm text-muted-foreground">Network Cost</Text>
+                        <GasFeePreview />
+                    </View>
                     <View className="flex-row gap-3">
                         <Button
                             className="flex-1 h-14"
@@ -612,12 +651,24 @@ export default function PoolDetailScreen() {
                         </Button>
                     </View>
 
+                    {pool.category === 'Lending' && (
+                        <Button
+                            variant="secondary"
+                            className="w-full mt-2 border border-primary/20 bg-primary/5"
+                            onPress={() => setShowBorrowModal(true)}
+                            disabled={!isReady}
+                        >
+                            <WalletIcon size={18} className="text-primary" />
+                            <Text className="font-semibold ml-2 text-primary">Borrow / Repay</Text>
+                        </Button>
+                    )}
+
                     <Button variant="outline" className="w-full" onPress={handleOpenProtocol}>
                         <ExternalLinkIcon size={16} className="text-foreground" />
                         <Text>Visit Protocol</Text>
                     </Button>
                 </View>
-            </ScrollView>
+            </ScrollView >
 
             <ZapTransactionModal
                 visible={showZapModal}
@@ -627,6 +678,18 @@ export default function PoolDetailScreen() {
                 error={zapError}
                 onClose={() => setShowZapModal(false)}
             />
+
+            {
+                pool && (
+                    <BorrowRepayModal
+                        visible={showBorrowModal}
+                        onClose={() => setShowBorrowModal(false)}
+                        asset={mapPoolToAsset(pool.name)}
+                        assetSymbol={mapPoolToAsset(pool.name)}
+                        availableToBorrow="1000" // Mock availability for demo, real implementations need a hook
+                    />
+                )
+            }
         </>
     );
 }

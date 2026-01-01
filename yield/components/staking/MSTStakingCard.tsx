@@ -21,6 +21,7 @@ import {
     useClaimMSTRewards
 } from '@/lib/useMSTStaking';
 import { useWallet } from '@/lib/useWallet';
+import { useToast } from '@/context/ToastContext';
 
 function formatAmount(value: string | number): string {
     const num = typeof value === 'string' ? parseFloat(value) : value;
@@ -40,6 +41,7 @@ export function MSTStakingCard() {
     const [amount, setAmount] = useState('');
     const [mode, setMode] = useState<'stake' | 'unstake'>('stake');
     const { address: userAddress } = useWallet();
+    const { showToast } = useToast();
 
     const { data: stakingInfo } = useMSTStakingInfo(userAddress);
     const { data: stats } = useMSTStakingStats();
@@ -53,29 +55,29 @@ export function MSTStakingCard() {
 
     const handleSubmit = () => {
         if (!userAddress) {
-            Alert.alert('Wallet Required', 'Please connect your wallet first');
+            showToast('Please connect your wallet first', 'warning', 'Wallet Required');
             return;
         }
         if (!amount || parseFloat(amount) <= 0) {
-            Alert.alert('Invalid Amount', 'Please enter a valid amount');
+            showToast('Please enter a valid amount', 'warning', 'Invalid Amount');
             return;
         }
 
         if (mode === 'stake') {
             stakeMST.mutate({ amount, userAddress }, {
                 onSuccess: () => {
-                    Alert.alert('Success', `Staked ${amount} MST`);
+                    showToast(`Staked ${amount} MST`, 'success', 'Success');
                     setAmount('');
                 },
-                onError: (error: Error) => Alert.alert('Error', error.message),
+                onError: (error: Error) => showToast(error.message, 'error', 'Error'),
             });
         } else {
             unstakeMST.mutate({ amount, userAddress }, {
                 onSuccess: () => {
-                    Alert.alert('Success', `Unstaked ${amount} MST`);
+                    showToast(`Unstaked ${amount} MST`, 'success', 'Success');
                     setAmount('');
                 },
-                onError: (error: Error) => Alert.alert('Error', error.message),
+                onError: (error: Error) => showToast(error.message, 'error', 'Error'),
             });
         }
     };
@@ -83,8 +85,8 @@ export function MSTStakingCard() {
     const handleClaim = () => {
         if (!userAddress) return;
         claimRewards.mutate({ userAddress }, {
-            onSuccess: () => Alert.alert('Success', 'Rewards claimed!'),
-            onError: (error: Error) => Alert.alert('Error', error.message),
+            onSuccess: () => showToast('Rewards claimed!', 'success', 'Success'),
+            onError: (error: Error) => showToast(error.message, 'error', 'Error'),
         });
     };
 

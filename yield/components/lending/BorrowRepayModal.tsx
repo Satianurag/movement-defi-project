@@ -12,8 +12,10 @@ import {
     WalletIcon,
 } from 'lucide-react-native';
 import { HealthFactorBar } from './HealthFactorBar';
+import { GasFeePreview } from '@/components/GasFeePreview'; // Assume absolute path or relative
 import { useBorrow, useRepay, useHealthFactor } from '@/lib/useBorrow';
 import { useWallet } from '@/lib/useWallet';
+import { useToast } from '@/context/ToastContext';
 
 interface BorrowRepayModalProps {
     visible: boolean;
@@ -35,6 +37,7 @@ export function BorrowRepayModal({
     const [mode, setMode] = useState<'borrow' | 'repay'>('borrow');
     const [amount, setAmount] = useState('');
     const { address: userAddress } = useWallet();
+    const { showToast } = useToast();
 
     const { data: healthData } = useHealthFactor(userAddress);
     const borrow = useBorrow();
@@ -45,32 +48,32 @@ export function BorrowRepayModal({
 
     const handleSubmit = () => {
         if (!userAddress) {
-            Alert.alert('Wallet Required', 'Please connect your wallet first');
+            showToast('Please connect your wallet first', 'warning', 'Wallet Required');
             return;
         }
         if (!amount || parseFloat(amount) <= 0) {
-            Alert.alert('Invalid Amount', 'Please enter a valid amount');
+            showToast('Please enter a valid amount', 'warning', 'Invalid Amount');
             return;
         }
 
         if (mode === 'borrow') {
             borrow.mutate({ asset, amount, userAddress }, {
                 onSuccess: () => {
-                    Alert.alert('Success', `Borrowed ${amount} ${assetSymbol}`);
+                    showToast(`Borrowed ${amount} ${assetSymbol}`, 'success', 'Success');
                     setAmount('');
                 },
                 onError: (error: Error) => {
-                    Alert.alert('Error', error.message);
+                    showToast(error.message, 'error', 'Error');
                 },
             });
         } else {
             repay.mutate({ asset, amount, userAddress }, {
                 onSuccess: () => {
-                    Alert.alert('Success', `Repaid ${amount} ${assetSymbol}`);
+                    showToast(`Repaid ${amount} ${assetSymbol}`, 'success', 'Success');
                     setAmount('');
                 },
                 onError: (error: Error) => {
-                    Alert.alert('Error', error.message);
+                    showToast(error.message, 'error', 'Error');
                 },
             });
         }
@@ -185,10 +188,14 @@ export function BorrowRepayModal({
                             )}
                         </CardContent>
 
-                        <CardFooter>
+                        <CardFooter className="flex-col gap-3">
+                            <View className="w-full flex-row justify-between items-center">
+                                <Text className="text-xs text-muted-foreground">Network Cost</Text>
+                                <GasFeePreview />
+                            </View>
                             <Button
                                 variant={mode === 'borrow' ? 'default' : 'secondary'}
-                                className="flex-1"
+                                className="w-full"
                                 onPress={handleSubmit}
                                 disabled={isLoading || !amount}
                             >

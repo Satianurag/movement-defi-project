@@ -3,8 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+
 import { RefreshCwIcon, AlertCircleIcon, InboxIcon } from 'lucide-react-native';
 import { View, ScrollView, ActivityIndicator, Platform } from 'react-native';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface PoolListProps {
     pools: PoolData[];
@@ -20,22 +22,22 @@ function LoadingSkeleton() {
             {[1, 2, 3].map((i) => (
                 <Card
                     key={i}
-                    className="p-4 opacity-50"
+                    className="p-4"
                 >
                     {/* Header skeleton */}
                     <View className="flex-row items-center justify-between mb-4">
                         <View className="flex-row items-center gap-2">
-                            <View className="h-8 w-8 rounded-full bg-muted" />
-                            <View className="h-5 w-24 rounded bg-muted" />
+                            <Skeleton className="h-8 w-8 rounded-full" />
+                            <Skeleton className="h-5 w-24 rounded" />
                         </View>
-                        <View className="h-6 w-20 rounded-full bg-muted" />
+                        <Skeleton className="h-6 w-20 rounded-full" />
                     </View>
                     {/* Metrics skeleton */}
                     <View className="flex-row gap-4">
                         {[1, 2, 3].map((j) => (
-                            <View key={j} className="flex-1 bg-muted/50 rounded-lg p-3">
-                                <View className="h-3 w-8 rounded bg-muted mb-2" />
-                                <View className="h-5 w-16 rounded bg-muted" />
+                            <View key={j} className="flex-1 Sbg-muted/50 rounded-lg p-3">
+                                <Skeleton className="h-3 w-8 rounded mb-2" />
+                                <Skeleton className="h-5 w-16 rounded" />
                             </View>
                         ))}
                     </View>
