@@ -104,7 +104,12 @@ export function TransactionSigner({ onComplete, onCancel }: TransactionSignerPro
                 });
                 setSignature(sig as string);
             } else if (mode === 'typed-data') {
-                // Example EIP-712 typed data
+                // Validate user has provided content
+                if (!message.trim()) {
+                    throw new Error('Please enter message content for typed data signing');
+                }
+
+                // EIP-712 typed data using user-provided content
                 const typedData = {
                     types: {
                         EIP712Domain: [
@@ -124,10 +129,11 @@ export function TransactionSigner({ onComplete, onCancel }: TransactionSignerPro
                     },
                     primaryType: 'Message',
                     message: {
-                        content: message || 'Hello from Kinetic!',
+                        content: message.trim(),
                         timestamp: Date.now(),
                     },
                 };
+
                 // Use eth_signTypedData_v4 via provider
                 const sig = await provider.request({
                     method: 'eth_signTypedData_v4',

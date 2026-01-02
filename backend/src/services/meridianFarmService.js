@@ -55,35 +55,8 @@ class MeridianFarmService {
             }));
         } catch (error) {
             console.error('Failed to fetch farms from on-chain:', error.message);
-            console.log('Returning MOCK DATA for development');
-
-            // Return mock data for development
-            return [
-                {
-                    farmId: 0,
-                    lpToken: 'MOVE-USDC LP',
-                    rewardToken: 'MOVE',
-                    totalStaked: '1500000000000', // 1.5M
-                    multiplier: 10,
-                    apr: 125.5
-                },
-                {
-                    farmId: 1,
-                    lpToken: 'BTC-MOVE LP',
-                    rewardToken: 'MOVE',
-                    totalStaked: '500000000000', // 500k
-                    multiplier: 20,
-                    apr: 240.2
-                },
-                {
-                    farmId: 2,
-                    lpToken: 'ETH-USDC LP',
-                    rewardToken: 'MOVE',
-                    totalStaked: '2500000000000', // 2.5M
-                    multiplier: 5,
-                    apr: 65.8
-                }
-            ];
+            // No mock data - propagate error for proper handling
+            throw new Error(`Failed to fetch farms: ${error.message}`);
         }
     }
 
@@ -109,8 +82,8 @@ class MeridianFarmService {
                 stakedAt: position.staked_at,
             }));
         } catch (error) {
-            console.warn('Failed to fetch user positions:', error.message);
-            return [];
+            console.error('Failed to fetch user positions:', error.message);
+            throw new Error(`Failed to fetch user positions: ${error.message}`);
         }
     }
 
@@ -137,13 +110,8 @@ class MeridianFarmService {
                 rewardToken: 'MST',
             };
         } catch (error) {
-            console.warn('Failed to fetch pending rewards:', error.message);
-            return {
-                farmId,
-                userAddress,
-                pendingRewards: '0',
-                rewardToken: 'MST',
-            };
+            console.error('Failed to fetch pending rewards:', error.message);
+            throw new Error(`Failed to fetch pending rewards: ${error.message}`);
         }
     }
 

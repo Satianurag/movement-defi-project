@@ -149,18 +149,57 @@ class SwapService {
 
     /**
      * Get supported tokens for the swap interface
-     * NOTE: For production, implement TokenListFetcher to get from tokenlists.org
+     * Fetches from CoinGecko's Movement ecosystem tokens
      */
     async getSupportedTokens() {
-        // TODO: Replace with TokenListFetcher for production
-        // Using verified token data from Movement Network
-        return [
-            { symbol: 'MOVE', name: 'Movement', decimals: 8, logoURI: 'https://assets.coingecko.com/coins/images/40903/standard/movement.jpg' },
-            { symbol: 'USDC', name: 'USD Coin', decimals: 6, logoURI: 'https://assets.coingecko.com/coins/images/6319/standard/usdc.png' },
-            { symbol: 'USDT', name: 'Tether', decimals: 6, logoURI: 'https://assets.coingecko.com/coins/images/325/standard/Tether.png' },
-            { symbol: 'WBTC', name: 'Wrapped Bitcoin', decimals: 8, logoURI: 'https://assets.coingecko.com/coins/images/7598/standard/wrapped_bitcoin_wbtc.png' },
-            { symbol: 'WETH', name: 'Wrapped Ether', decimals: 18, logoURI: 'https://assets.coingecko.com/coins/images/2518/standard/weth.png' }
-        ];
+        try {
+            // Fetch Movement Network tokens from CoinGecko
+            const response = await fetch(
+                'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=movement,bitcoin,ethereum,usd-coin,tether,wrapped-bitcoin,weth&order=market_cap_desc',
+                {
+                    timeout: 5000,
+                    headers: { 'Accept': 'application/json' }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`CoinGecko API error: ${response.status}`);
+            }
+
+            const coins = await response.json();
+
+            // Map CoinGecko response to our token format
+            const symbolMap = {
+                'movement': 'MOVE',
+                'bitcoin': 'BTC',
+                'ethereum': 'ETH',
+                'usd-coin': 'USDC',
+                'tether': 'USDT',
+                'wrapped-bitcoin': 'WBTC',
+                'weth': 'WETH'
+            };
+
+            const decimalsMap = {
+                'MOVE': 8,
+                'BTC': 8,
+                'ETH': 18,
+                'USDC': 6,
+                'USDT': 6,
+                'WBTC': 8,
+                'WETH': 18
+            };
+
+            return coins.map(coin => ({
+                symbol: symbolMap[coin.id] || coin.symbol.toUpperCase(),
+                name: coin.name,
+                decimals: decimalsMap[symbolMap[coin.id]] || 18,
+                logoURI: coin.image,
+                price: coin.current_price // Bonus: include current price
+            }));
+        } catch (error) {
+            console.error('Failed to fetch tokens from CoinGecko:', error.message);
+            throw new Error(`Failed to fetch token list: ${error.message}`);
+        }
     }
 }
 

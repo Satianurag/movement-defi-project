@@ -1,21 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Platform } from 'react-native';
 import { PoolData } from '@/components/PoolCard';
-
-// Backend API URL - Android emulator uses 10.0.2.2 to reach host localhost
-const getApiBaseUrl = () => {
-    if (process.env.EXPO_PUBLIC_API_URL) {
-        return process.env.EXPO_PUBLIC_API_URL;
-    }
-    // Android emulator: use 10.0.2.2 to reach host machine's localhost
-    // iOS simulator & web: localhost works fine
-    if (Platform.OS === 'android') {
-        return 'http://10.0.2.2:3000';
-    }
-    return 'http://localhost:3000';
-};
+import { getApiBaseUrl } from './api-config';
 
 const API_BASE_URL = getApiBaseUrl();
+
 
 interface PoolsApiResponse {
     success: boolean;

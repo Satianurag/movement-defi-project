@@ -38,34 +38,43 @@ export function ExportWallet({ onExported, onCancel }: ExportWalletProps) {
 
         setIsLoading(true);
         try {
-            // Note: The actual export API depends on Privy SDK version
-            // This is a placeholder that shows the flow
-            Alert.alert(
-                'Export Private Key',
-                'Private key export requires additional security verification. This feature will prompt for authentication.',
-                [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                        text: 'Continue',
-                        onPress: async () => {
-                            // In actual implementation, this would call the Privy export method
-                            // For demo purposes, we show a placeholder
-                            setPrivateKey('Export requires Privy configuration');
-                            setStep('display');
-                            onExported?.();
-                        }
-                    }
-                ]
-            );
+            // Privy Expo SDK currently does not expose exportWallet method
+            // This is a known limitation - the feature requires Privy dashboard configuration
+            // and may only be available on web or with specific SDK versions
+
+            // Check if exportWallet method exists on the wallet
+            const walletAny = wallet as any;
+
+            if (typeof walletAny.export === 'function' || typeof walletAny.exportWallet === 'function') {
+                // If export method exists, attempt to use it
+                const exportMethod = walletAny.export || walletAny.exportWallet;
+                const result = await exportMethod();
+
+                if (result && result.privateKey) {
+                    setPrivateKey(result.privateKey);
+                    setStep('display');
+                    onExported?.();
+                } else {
+                    throw new Error('Export returned no private key');
+                }
+            } else {
+                // Export not available - show clear message
+                Alert.alert(
+                    'Feature Not Available',
+                    'Private key export is not currently supported in this version of the app. This feature requires specific Privy configuration and may only be available on web platforms.',
+                    [{ text: 'OK', onPress: onCancel }]
+                );
+            }
         } catch (error) {
             Alert.alert(
                 'Export Error',
-                error instanceof Error ? error.message : 'Failed to export wallet'
+                error instanceof Error ? error.message : 'Failed to export wallet. This feature may not be available in your configuration.'
             );
         } finally {
             setIsLoading(false);
         }
     };
+
 
     const handleCopy = async () => {
         if (privateKey) {

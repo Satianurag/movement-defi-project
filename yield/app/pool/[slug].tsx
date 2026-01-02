@@ -37,6 +37,7 @@ import { useToast } from '@/context/ToastContext';
 import { GasFeePreview } from '@/components/GasFeePreview';
 import { BorrowRepayModal } from '@/components/lending/BorrowRepayModal';
 import { API_URL as API_BASE_URL } from '@/lib/api-config';
+import { useEchelon } from '@/lib/useEchelon';
 
 // Category colors
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -100,6 +101,7 @@ export default function PoolDetailScreen() {
     const [isHistoryLoading, setIsHistoryLoading] = useState(false);
     const [showBorrowModal, setShowBorrowModal] = useState(false);
     const [showZapModal, setShowZapModal] = useState(false);
+    const [borrowLimit, setBorrowLimit] = useState<string>('0');
     const { showToast } = useToast();
 
     const [isWithdrawing, setIsWithdrawing] = useState(false);
@@ -118,6 +120,9 @@ export default function PoolDetailScreen() {
 
     // Protocol integration (routes to correct protocol by slug)
     const { deposit, withdraw, isLoading: protocolLoading } = useProtocol();
+
+    // Echelon hook for borrow limit
+    const { getPosition, getMarketInfo } = useEchelon();
 
     // Initialize from params
     useEffect(() => {
@@ -184,6 +189,34 @@ export default function PoolDetailScreen() {
         await fetchData();
         setRefreshing(false);
     }, [fetchData]);
+
+    // Fetch real borrow limit from Echelon when user is authenticated
+    useEffect(() => {
+        const fetchBorrowLimit = async () => {
+            if (!isAuthenticated || !smartWalletAddress || !pool) return;
+
+            try {
+                // Get market info for available liquidity
+                const asset = mapPoolToAsset(pool.name);
+                const marketInfo = await getMarketInfo(asset);
+
+                if (marketInfo) {
+                    // Available to borrow = total supplied - total borrowed
+                    const totalSupplied = parseFloat(marketInfo.totalSupplied || '0');
+                    const totalBorrowed = parseFloat(marketInfo.totalBorrowed || '0');
+                    const available = Math.max(0, totalSupplied - totalBorrowed);
+
+                    // Format with appropriate decimals
+                    setBorrowLimit(available.toFixed(2));
+                }
+            } catch (error) {
+                console.error('Failed to fetch borrow limit:', error);
+                setBorrowLimit('0');
+            }
+        };
+
+        fetchBorrowLimit();
+    }, [isAuthenticated, smartWalletAddress, pool, getMarketInfo]);
 
     const handleDeposit = async () => {
         if (!isReady) return;
@@ -704,7 +737,7 @@ export default function PoolDetailScreen() {
                         onClose={() => setShowBorrowModal(false)}
                         asset={mapPoolToAsset(pool.name)}
                         assetSymbol={mapPoolToAsset(pool.name)}
-                        availableToBorrow="1000" // Mock availability for demo, real implementations need a hook
+                        availableToBorrow={borrowLimit}
                     />
                 )
             }

@@ -4,19 +4,10 @@
  */
 
 import { useState, useCallback } from 'react';
-import { Platform } from 'react-native';
-
-const getApiBaseUrl = () => {
-    if (process.env.EXPO_PUBLIC_API_URL) {
-        return process.env.EXPO_PUBLIC_API_URL;
-    }
-    if (Platform.OS === 'android') {
-        return 'http://10.0.2.2:3000';
-    }
-    return 'http://localhost:3000';
-};
+import { getApiBaseUrl } from './api-config';
 
 const API_BASE_URL = getApiBaseUrl();
+
 
 export interface SwapResult {
     success: boolean;
