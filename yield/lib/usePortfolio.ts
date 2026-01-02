@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useWallet } from './useWallet';
-
-const API_URL = 'http://localhost:3000';
+import { API_URL } from './api-config';
 
 export interface PortfolioPosition {
     id: string;

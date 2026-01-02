@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+import { API_URL } from './api-config';
 
 export interface Farm {
     farmId: number;
@@ -32,17 +31,10 @@ export function useFarms() {
     return useQuery<Farm[]>({
         queryKey: ['farms'],
         queryFn: async () => {
-            console.log('Fetching farms from:', `${API_URL}/api/meridian/farms`);
-            try {
-                const response = await fetch(`${API_URL}/api/meridian/farms`);
-                const result = await response.json();
-                console.log('Fetch result:', result);
-                if (!result.success) throw new Error(result.error);
-                return result.data;
-            } catch (e) {
-                console.error('Fetch error:', e);
-                throw e;
-            }
+            const response = await fetch(`${API_URL}/api/meridian/farms`);
+            const result = await response.json();
+            if (!result.success) throw new Error(result.error);
+            return result.data;
         },
         staleTime: 30000, // 30 seconds
     });

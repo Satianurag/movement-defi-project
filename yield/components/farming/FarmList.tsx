@@ -13,13 +13,6 @@ export function FarmList() {
     const { data: farms, isLoading, error, refetch, isRefetching } = useFarms();
     const { data: positions } = useUserFarmPositions(userAddress);
 
-    console.log('FarmList render:', {
-        isLoading,
-        error: error?.message,
-        farmsCount: farms?.length,
-        firstFarm: farms?.[0]
-    });
-
     const stakeLP = useStakeLP();
     const unstakeLP = useUnstakeLP();
 

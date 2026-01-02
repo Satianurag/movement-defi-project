@@ -80,6 +80,16 @@ const resolveRequestWithPackageExports = (context, moduleName, platform) => {
         return ctx.resolveRequest(ctx, moduleName, platform);
     }
 
+    // D3 packages use ES modules with .js extensions which Metro can't resolve
+    // Disable package exports to use file-based resolution
+    if (moduleName.startsWith('d3-') || moduleName === 'd3') {
+        const ctx = {
+            ...context,
+            unstable_enablePackageExports: false,
+        };
+        return ctx.resolveRequest(ctx, moduleName, platform);
+    }
+
     // Enable package exports for Privy packages
     if (moduleName.startsWith('@privy-io/')) {
         const ctx = {

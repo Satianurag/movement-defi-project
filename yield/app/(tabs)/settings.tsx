@@ -4,7 +4,7 @@ import { Text } from '@/components/ui/text';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { View, ScrollView, Modal, Pressable } from 'react-native';
+import { View, ScrollView, Modal, Pressable, Alert } from 'react-native';
 import {
     SettingsIcon,
     BellIcon,
@@ -16,10 +16,14 @@ import {
     WalletIcon,
     PlusIcon,
     CheckCircleIcon,
-
     ArchiveIcon,
     MoonIcon,
-    SunIcon
+    SunIcon,
+    LoaderIcon,
+    BellRingIcon,
+    BellOffIcon,
+    EyeIcon,
+    EyeOffIcon,
 } from 'lucide-react-native';
 import { Stack, router } from 'expo-router';
 import { useWallet } from '@/lib/useWallet';
@@ -28,12 +32,28 @@ import { useColorScheme } from 'nativewind';
 import { Switch } from 'react-native';
 import { WalletRecovery } from '@/components/wallet/WalletRecovery';
 import { MFASetup } from '@/components/wallet/MFASetup';
+import { useToast } from '@/context/ToastContext';
 
 export default function SettingsScreen() {
     const { user, isAuthenticated, logout } = useWallet();
+    const { walletCount, createAdditionalWallet } = useWallet();
+    const { showToast } = useToast();
     const [showMFASetup, setShowMFASetup] = useState(false);
     const [showWalletRecovery, setShowWalletRecovery] = useState(false);
+    const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+    const [isCreatingWallet, setIsCreatingWallet] = useState(false);
     const { colorScheme, toggleColorScheme, setColorScheme } = useColorScheme();
+
+    // Notification preferences (would persist to storage in production)
+    const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(true);
+    const [apyAlerts, setApyAlerts] = useState(true);
+    const [transactionAlerts, setTransactionAlerts] = useState(true);
+    const [weeklyDigest, setWeeklyDigest] = useState(false);
+
+    // Privacy preferences
+    const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
+    const [crashReportsEnabled, setCrashReportsEnabled] = useState(true);
 
     // Check if MFA is enabled (simplified check)
     const hasMFA = (user as any)?.mfa_methods?.length > 0;
@@ -46,6 +66,40 @@ export default function SettingsScreen() {
     const handleLogout = async () => {
         await logout();
         router.replace('/sign-in' as any);
+    };
+
+    const handleCreateAdditionalWallet = async () => {
+        Alert.alert(
+            'Create Additional Wallet',
+            'This will create a new HD wallet under your account. The new wallet will share the same recovery method as your primary wallet.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Create',
+                    onPress: async () => {
+                        setIsCreatingWallet(true);
+                        try {
+                            const newAddress = await createAdditionalWallet();
+                            if (newAddress) {
+                                showToast(
+                                    `New wallet created: ${newAddress.slice(0, 6)}...${newAddress.slice(-4)}`,
+                                    'success',
+                                    'Wallet Created'
+                                );
+                            }
+                        } catch (error) {
+                            showToast(
+                                error instanceof Error ? error.message : 'Failed to create wallet',
+                                'error',
+                                'Error'
+                            );
+                        } finally {
+                            setIsCreatingWallet(false);
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     return (
@@ -89,6 +143,7 @@ export default function SettingsScreen() {
                                     onValueChange={toggleColorScheme}
                                     trackColor={{ false: '#767577', true: '#3b82f6' }}
                                     thumbColor={colorScheme === 'dark' ? '#ffffff' : '#f4f3f4'}
+                                    testID="settings-dark-mode-toggle"
                                 />
                             </View>
                         </Card>
@@ -105,6 +160,7 @@ export default function SettingsScreen() {
                                 <Pressable
                                     onPress={() => setShowMFASetup(true)}
                                     className="flex-row items-center justify-between p-4 active:bg-muted"
+                                    testID="settings-mfa-button"
                                 >
                                     <View className="flex-row items-center gap-3">
                                         <View className="h-10 w-10 rounded-full bg-emerald-500/10 items-center justify-center">
@@ -135,6 +191,7 @@ export default function SettingsScreen() {
                                 <Pressable
                                     onPress={() => setShowWalletRecovery(true)}
                                     className="flex-row items-center justify-between p-4 active:bg-muted"
+                                    testID="settings-recovery-button"
                                 >
                                     <View className="flex-row items-center gap-3">
                                         <View className="h-10 w-10 rounded-full bg-primary/10 items-center justify-center">
@@ -169,10 +226,10 @@ export default function SettingsScreen() {
                             <Card>
                                 {/* HD Wallets - Create Additional */}
                                 <Pressable
-                                    onPress={() => {
-                                        // TODO: Implement HD wallet creation
-                                    }}
+                                    onPress={handleCreateAdditionalWallet}
+                                    disabled={isCreatingWallet}
                                     className="flex-row items-center justify-between p-4 active:bg-muted"
+                                    testID="settings-create-wallet-button"
                                 >
                                     <View className="flex-row items-center gap-3">
                                         <View className="h-10 w-10 rounded-full bg-amber-500/10 items-center justify-center">
@@ -181,12 +238,18 @@ export default function SettingsScreen() {
                                         <View>
                                             <Text className="font-medium text-foreground">Additional Wallets</Text>
                                             <Text className="text-xs text-muted-foreground">
-                                                Create HD wallets under your account
+                                                {walletCount > 1
+                                                    ? `${walletCount} HD wallets created`
+                                                    : 'Create HD wallets under your account'}
                                             </Text>
                                         </View>
                                     </View>
                                     <View className="flex-row items-center gap-2">
-                                        <PlusIcon size={16} className="text-muted-foreground" />
+                                        {isCreatingWallet ? (
+                                            <LoaderIcon size={16} className="text-muted-foreground animate-spin" />
+                                        ) : (
+                                            <PlusIcon size={16} className="text-muted-foreground" />
+                                        )}
                                         <ChevronRightIcon size={20} className="text-muted-foreground" />
                                     </View>
                                 </Pressable>
@@ -195,8 +258,9 @@ export default function SettingsScreen() {
 
                                 {/* Transaction History */}
                                 <Pressable
-                                    onPress={() => router.push('/history')}
+                                    onPress={() => router.push('/history' as any)}
                                     className="flex-row items-center justify-between p-4 active:bg-muted"
+                                    testID="settings-history-button"
                                 >
                                     <View className="flex-row items-center gap-3">
                                         <View className="h-10 w-10 rounded-full bg-blue-500/10 items-center justify-center">
@@ -221,7 +285,11 @@ export default function SettingsScreen() {
                             Preferences
                         </Text>
                         <Card>
-                            <Pressable className="flex-row items-center justify-between p-4 active:bg-muted">
+                            <Pressable
+                                onPress={() => setShowNotificationsModal(true)}
+                                className="flex-row items-center justify-between p-4 active:bg-muted"
+                                testID="settings-notifications-button"
+                            >
                                 <View className="flex-row items-center gap-3">
                                     <View className="h-10 w-10 rounded-full bg-blue-500/10 items-center justify-center">
                                         <BellIcon size={20} className="text-blue-500" />
@@ -238,7 +306,11 @@ export default function SettingsScreen() {
 
                             <Separator />
 
-                            <Pressable className="flex-row items-center justify-between p-4 active:bg-muted">
+                            <Pressable
+                                onPress={() => setShowPrivacyModal(true)}
+                                className="flex-row items-center justify-between p-4 active:bg-muted"
+                                testID="settings-privacy-button"
+                            >
                                 <View className="flex-row items-center gap-3">
                                     <View className="h-10 w-10 rounded-full bg-slate-500/10 items-center justify-center">
                                         <ShieldIcon size={20} className="text-slate-500" />
@@ -261,6 +333,7 @@ export default function SettingsScreen() {
                             variant="destructive"
                             className="w-full"
                             onPress={handleLogout}
+                            testID="settings-logout-button"
                         >
                             <LogOutIcon size={18} className="text-white mr-2" />
                             <Text className="text-white font-semibold">Sign Out</Text>
@@ -312,6 +385,181 @@ export default function SettingsScreen() {
                         onSetup={() => setShowWalletRecovery(false)}
                         onCancel={() => setShowWalletRecovery(false)}
                     />
+                </View>
+            </Modal>
+
+            {/* Notifications Settings Modal */}
+            <Modal
+                visible={showNotificationsModal}
+                animationType="slide"
+                presentationStyle="pageSheet"
+                onRequestClose={() => setShowNotificationsModal(false)}
+            >
+                <View className="flex-1 bg-background p-6">
+                    <View className="flex-row justify-between items-center mb-6">
+                        <View className="flex-row items-center gap-2">
+                            <BellIcon size={24} className="text-primary" />
+                            <Text className="text-xl font-bold text-foreground">Notifications</Text>
+                        </View>
+                        <Button variant="ghost" onPress={() => setShowNotificationsModal(false)}>
+                            <Text>Done</Text>
+                        </Button>
+                    </View>
+
+                    <View className="gap-4">
+                        <Card>
+                            <View className="flex-row items-center justify-between p-4">
+                                <View className="flex-row items-center gap-3">
+                                    <View className="h-10 w-10 rounded-full bg-blue-500/10 items-center justify-center">
+                                        {pushNotificationsEnabled ? (
+                                            <BellRingIcon size={20} className="text-blue-500" />
+                                        ) : (
+                                            <BellOffIcon size={20} className="text-muted-foreground" />
+                                        )}
+                                    </View>
+                                    <View>
+                                        <Text className="font-medium text-foreground">Push Notifications</Text>
+                                        <Text className="text-xs text-muted-foreground">
+                                            Receive notifications on your device
+                                        </Text>
+                                    </View>
+                                </View>
+                                <Switch
+                                    value={pushNotificationsEnabled}
+                                    onValueChange={setPushNotificationsEnabled}
+                                    trackColor={{ false: '#767577', true: '#3b82f6' }}
+                                    thumbColor={pushNotificationsEnabled ? '#ffffff' : '#f4f3f4'}
+                                    testID="notifications-push-toggle"
+                                />
+                            </View>
+                        </Card>
+
+                        {pushNotificationsEnabled && (
+                            <Card>
+                                <View className="flex-row items-center justify-between p-4">
+                                    <View>
+                                        <Text className="font-medium text-foreground">APY Change Alerts</Text>
+                                        <Text className="text-xs text-muted-foreground">
+                                            Alert when pool APY changes significantly
+                                        </Text>
+                                    </View>
+                                    <Switch
+                                        value={apyAlerts}
+                                        onValueChange={setApyAlerts}
+                                        trackColor={{ false: '#767577', true: '#10B981' }}
+                                        thumbColor={apyAlerts ? '#ffffff' : '#f4f3f4'}
+                                    />
+                                </View>
+
+                                <Separator />
+
+                                <View className="flex-row items-center justify-between p-4">
+                                    <View>
+                                        <Text className="font-medium text-foreground">Transaction Alerts</Text>
+                                        <Text className="text-xs text-muted-foreground">
+                                            Notify when transactions complete
+                                        </Text>
+                                    </View>
+                                    <Switch
+                                        value={transactionAlerts}
+                                        onValueChange={setTransactionAlerts}
+                                        trackColor={{ false: '#767577', true: '#10B981' }}
+                                        thumbColor={transactionAlerts ? '#ffffff' : '#f4f3f4'}
+                                    />
+                                </View>
+
+                                <Separator />
+
+                                <View className="flex-row items-center justify-between p-4">
+                                    <View>
+                                        <Text className="font-medium text-foreground">Weekly Digest</Text>
+                                        <Text className="text-xs text-muted-foreground">
+                                            Weekly summary of your portfolio
+                                        </Text>
+                                    </View>
+                                    <Switch
+                                        value={weeklyDigest}
+                                        onValueChange={setWeeklyDigest}
+                                        trackColor={{ false: '#767577', true: '#10B981' }}
+                                        thumbColor={weeklyDigest ? '#ffffff' : '#f4f3f4'}
+                                    />
+                                </View>
+                            </Card>
+                        )}
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Privacy Settings Modal */}
+            <Modal
+                visible={showPrivacyModal}
+                animationType="slide"
+                presentationStyle="pageSheet"
+                onRequestClose={() => setShowPrivacyModal(false)}
+            >
+                <View className="flex-1 bg-background p-6">
+                    <View className="flex-row justify-between items-center mb-6">
+                        <View className="flex-row items-center gap-2">
+                            <ShieldIcon size={24} className="text-primary" />
+                            <Text className="text-xl font-bold text-foreground">Privacy</Text>
+                        </View>
+                        <Button variant="ghost" onPress={() => setShowPrivacyModal(false)}>
+                            <Text>Done</Text>
+                        </Button>
+                    </View>
+
+                    <View className="gap-4">
+                        <Card>
+                            <View className="flex-row items-center justify-between p-4">
+                                <View className="flex-row items-center gap-3">
+                                    <View className="h-10 w-10 rounded-full bg-purple-500/10 items-center justify-center">
+                                        {analyticsEnabled ? (
+                                            <EyeIcon size={20} className="text-purple-500" />
+                                        ) : (
+                                            <EyeOffIcon size={20} className="text-muted-foreground" />
+                                        )}
+                                    </View>
+                                    <View className="flex-1">
+                                        <Text className="font-medium text-foreground">Analytics</Text>
+                                        <Text className="text-xs text-muted-foreground">
+                                            Help improve the app with anonymous usage data
+                                        </Text>
+                                    </View>
+                                </View>
+                                <Switch
+                                    value={analyticsEnabled}
+                                    onValueChange={setAnalyticsEnabled}
+                                    trackColor={{ false: '#767577', true: '#8B5CF6' }}
+                                    thumbColor={analyticsEnabled ? '#ffffff' : '#f4f3f4'}
+                                    testID="privacy-analytics-toggle"
+                                />
+                            </View>
+
+                            <Separator />
+
+                            <View className="flex-row items-center justify-between p-4">
+                                <View className="flex-1">
+                                    <Text className="font-medium text-foreground">Crash Reports</Text>
+                                    <Text className="text-xs text-muted-foreground">
+                                        Automatically send crash reports to help fix bugs
+                                    </Text>
+                                </View>
+                                <Switch
+                                    value={crashReportsEnabled}
+                                    onValueChange={setCrashReportsEnabled}
+                                    trackColor={{ false: '#767577', true: '#8B5CF6' }}
+                                    thumbColor={crashReportsEnabled ? '#ffffff' : '#f4f3f4'}
+                                />
+                            </View>
+                        </Card>
+
+                        <View className="bg-muted/50 rounded-lg p-4 mt-2">
+                            <Text className="text-sm text-muted-foreground">
+                                Your data is stored securely and never shared with third parties.
+                                Wallet addresses and transaction data remain on your device.
+                            </Text>
+                        </View>
+                    </View>
                 </View>
             </Modal>
         </>

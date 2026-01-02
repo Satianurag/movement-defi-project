@@ -186,6 +186,7 @@ export default function SignInScreen() {
                                         keyboardType="email-address"
                                         autoCapitalize="none"
                                         autoCorrect={false}
+                                        testID="signin-email-input"
                                     />
                                 ) : (
                                     <Input
@@ -193,6 +194,7 @@ export default function SignInScreen() {
                                         value={phone}
                                         onChangeText={setPhone}
                                         keyboardType="phone-pad"
+                                        testID="signin-phone-input"
                                     />
                                 )}
 
@@ -201,6 +203,7 @@ export default function SignInScreen() {
                                     onPress={handleSendCode}
                                     disabled={isLoading}
                                     className="w-full h-14"
+                                    testID="signin-send-code-button"
                                 >
                                     {isLoading ? (
                                         <LoaderIcon size={20} className="text-primary-foreground animate-spin" />
@@ -230,6 +233,7 @@ export default function SignInScreen() {
                                         className="flex-1 h-14 bg-card"
                                         onPress={() => handleOAuthLogin('google')}
                                         disabled={oauthState.status === 'loading'}
+                                        testID="signin-google-button"
                                     >
                                         <Text className="font-semibold">Google</Text>
                                     </Button>
@@ -238,6 +242,7 @@ export default function SignInScreen() {
                                         className="flex-1 h-14 bg-card"
                                         onPress={() => handleOAuthLogin('apple')}
                                         disabled={oauthState.status === 'loading'}
+                                        testID="signin-apple-button"
                                     >
                                         <Text className="font-semibold">Apple</Text>
                                     </Button>
@@ -250,6 +255,7 @@ export default function SignInScreen() {
                                         className="flex-1 h-14 bg-card border-sky-500/30"
                                         onPress={() => handleOAuthLogin('twitter')}
                                         disabled={oauthState.status === 'loading'}
+                                        testID="signin-twitter-button"
                                     >
                                         <Text className="font-semibold text-sky-600">Twitter/X</Text>
                                     </Button>
@@ -258,6 +264,7 @@ export default function SignInScreen() {
                                         className="flex-1 h-14 bg-card border-indigo-500/30"
                                         onPress={() => handleOAuthLogin('discord')}
                                         disabled={oauthState.status === 'loading'}
+                                        testID="signin-discord-button"
                                     >
                                         <Text className="font-semibold text-indigo-600">Discord</Text>
                                     </Button>
@@ -269,6 +276,7 @@ export default function SignInScreen() {
                                     className="w-full h-14"
                                     onPress={() => loginWithPasskey({} as any)}
                                     disabled={passkeyState.status !== 'initial' && passkeyState.status !== 'done'}
+                                    testID="signin-passkey-button"
                                 >
                                     <FingerprintIcon size={20} className="text-foreground" />
                                     <Text className="font-semibold">Sign in with Passkey</Text>
@@ -297,6 +305,7 @@ export default function SignInScreen() {
                                     keyboardType="number-pad"
                                     maxLength={6}
                                     className="text-center tracking-widest text-xl"
+                                    testID="signin-code-input"
                                 />
 
                                 <Text className="text-sm text-muted-foreground text-center">
@@ -307,6 +316,7 @@ export default function SignInScreen() {
                                     onPress={handleVerifyCode}
                                     disabled={isVerifying}
                                     className="w-full h-14"
+                                    testID="signin-verify-button"
                                 >
                                     {isVerifying ? (
                                         <LoaderIcon size={20} className="text-primary-foreground animate-spin" />
@@ -334,7 +344,7 @@ export default function SignInScreen() {
 
                     {/* Skip for now */}
                     <View className="mt-8 items-center">
-                        <Button variant="ghost" onPress={handleSkip}>
+                        <Button variant="ghost" onPress={handleSkip} testID="signin-skip-button">
                             <Text className="text-muted-foreground">Skip for now</Text>
                         </Button>
                     </View>

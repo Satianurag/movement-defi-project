@@ -36,8 +36,7 @@ import { PriceChart } from '@/components/charts/PriceChart';
 import { useToast } from '@/context/ToastContext';
 import { GasFeePreview } from '@/components/GasFeePreview';
 import { BorrowRepayModal } from '@/components/lending/BorrowRepayModal';
-
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000';
+import { API_URL as API_BASE_URL } from '@/lib/api-config';
 
 // Category colors
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -493,6 +492,23 @@ export default function PoolDetailScreen() {
 
                         {/* Details Tab */}
                         <TabsContent value="details">
+                            {/* TVL History Chart */}
+                            <Card className="mb-4">
+                                <CardHeader>
+                                    <CardTitle>TVL History</CardTitle>
+                                    <CardDescription>
+                                        Historical Total Value Locked over time
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <PriceChart
+                                        data={historyData}
+                                        loading={isHistoryLoading}
+                                        height={180}
+                                    />
+                                </CardContent>
+                            </Card>
+
                             {/* APY Breakdown */}
                             <Card className="mb-4">
                                 <CardHeader>
@@ -612,7 +628,6 @@ export default function PoolDetailScreen() {
                 </View>
 
                 {/* Action Buttons */}
-                {/* Action Buttons */}
                 <View className="px-6 mt-6 gap-3">
                     <View className="flex-row items-center justify-between bg-muted/30 p-2 rounded-lg">
                         <Text className="text-sm text-muted-foreground">Network Cost</Text>
@@ -623,6 +638,7 @@ export default function PoolDetailScreen() {
                             className="flex-1 h-14"
                             onPress={handleDeposit}
                             disabled={isDepositing || isWithdrawing || !isReady}
+                            testID="pool-deposit-button"
                         >
                             {isDepositing ? (
                                 <LoaderIcon size={20} className="text-primary-foreground animate-spin" />
@@ -639,6 +655,7 @@ export default function PoolDetailScreen() {
                             className="flex-1 h-14"
                             onPress={handleWithdraw}
                             disabled={isDepositing || isWithdrawing || !isReady}
+                            testID="pool-withdraw-button"
                         >
                             {isWithdrawing ? (
                                 <LoaderIcon size={20} className="text-secondary-foreground animate-spin" />
@@ -657,6 +674,7 @@ export default function PoolDetailScreen() {
                             className="w-full mt-2 border border-primary/20 bg-primary/5"
                             onPress={() => setShowBorrowModal(true)}
                             disabled={!isReady}
+                            testID="pool-borrow-repay-button"
                         >
                             <WalletIcon size={18} className="text-primary" />
                             <Text className="font-semibold ml-2 text-primary">Borrow / Repay</Text>

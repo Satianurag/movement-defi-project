@@ -14,9 +14,7 @@ import { SlippageModal } from '@/components/swap/SlippageModal';
 import { useWallet } from '@/lib/useWallet';
 import { useToast } from '@/context/ToastContext';
 import { useQuery } from '@tanstack/react-query';
-
-// Constants
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+import { API_URL } from '@/lib/api-config';
 
 // Fetch tokens from backend API
 async function fetchSupportedTokens(): Promise<Token[]> {
