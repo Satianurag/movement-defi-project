@@ -231,8 +231,8 @@ export function ExportWallet({ onExported, onCancel }: ExportWalletProps) {
                         >
                             {copied ? (
                                 <>
-                                    <CheckIcon size={16} className="text-emerald-500 mr-2" />
-                                    <Text className="text-emerald-500">Copied!</Text>
+                                    <CheckIcon size={16} className="text-success mr-2" />
+                                    <Text className="text-success">Copied!</Text>
                                 </>
                             ) : (
                                 <>

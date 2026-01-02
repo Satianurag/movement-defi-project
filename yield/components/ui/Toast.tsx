@@ -13,17 +13,17 @@ export interface ToastProps {
 }
 
 const TOAST_ICONS = {
-    success: <CheckCircleIcon size={24} color="#10B981" />,
+    success: <CheckCircleIcon size={24} color="#16A34A" />,
     error: <XCircleIcon size={24} color="#EF4444" />,
     warning: <AlertCircleIcon size={24} color="#F59E0B" />,
-    info: <InfoIcon size={24} color="#3B82F6" />,
+    info: <InfoIcon size={24} color="#FA4616" />,
 };
 
 const TOAST_COLORS = {
-    success: 'bg-emerald-500/10 border-emerald-500/20',
+    success: 'bg-success/10 border-success/20',
     error: 'bg-red-500/10 border-red-500/20',
     warning: 'bg-amber-500/10 border-amber-500/20',
-    info: 'bg-blue-500/10 border-blue-500/20',
+    info: 'bg-primary/10 border-primary/20',
 };
 
 export const Toast = ({ id, type, message, title, onClose }: ToastProps) => {

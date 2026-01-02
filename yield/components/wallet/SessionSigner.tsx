@@ -136,9 +136,9 @@ export function SessionSigner({ onComplete, onCancel }: SessionSignerProps) {
             <CardHeader>
                 <View className="flex-row items-center justify-between">
                     <CardTitle className="text-xl">Session Signers</CardTitle>
-                    <Badge variant="outline" className="border-emerald-500/30">
-                        <KeyIcon size={12} className="text-emerald-500 mr-1" />
-                        <Text className="text-emerald-500 text-xs">Delegation</Text>
+                    <Badge variant="outline" className="border-success/30">
+                        <KeyIcon size={12} className="text-success mr-1" />
+                        <Text className="text-success text-xs">Delegation</Text>
                     </Badge>
                 </View>
                 <CardDescription>
@@ -150,10 +150,10 @@ export function SessionSigner({ onComplete, onCancel }: SessionSignerProps) {
                 {step === 'info' && (
                     <>
                         {/* Info Section */}
-                        <View className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                        <View className="bg-primary/10 border border-primary/20 rounded-lg p-4">
                             <View className="flex-row items-center gap-2 mb-2">
-                                <ShieldCheckIcon size={18} className="text-blue-500" />
-                                <Text className="font-semibold text-blue-600">What are Session Signers?</Text>
+                                <ShieldCheckIcon size={18} className="text-primary" />
+                                <Text className="font-semibold text-primary">What are Session Signers?</Text>
                             </View>
                             <Text className="text-sm text-muted-foreground">
                                 Session signers allow your server to sign transactions on behalf of your wallet.
@@ -164,15 +164,15 @@ export function SessionSigner({ onComplete, onCancel }: SessionSignerProps) {
                         {/* Benefits List */}
                         <View className="gap-2">
                             <View className="flex-row items-center gap-2">
-                                <CheckCircleIcon size={14} className="text-emerald-500" />
+                                <CheckCircleIcon size={14} className="text-success" />
                                 <Text className="text-sm">Gasless transactions for users</Text>
                             </View>
                             <View className="flex-row items-center gap-2">
-                                <CheckCircleIcon size={14} className="text-emerald-500" />
+                                <CheckCircleIcon size={14} className="text-success" />
                                 <Text className="text-sm">Automated DeFi strategies</Text>
                             </View>
                             <View className="flex-row items-center gap-2">
-                                <CheckCircleIcon size={14} className="text-emerald-500" />
+                                <CheckCircleIcon size={14} className="text-success" />
                                 <Text className="text-sm">Policy-controlled access</Text>
                             </View>
                         </View>
@@ -280,8 +280,8 @@ export function SessionSigner({ onComplete, onCancel }: SessionSignerProps) {
 
                 {step === 'success' && (
                     <View className="items-center py-6">
-                        <View className="h-16 w-16 rounded-full bg-emerald-500/10 items-center justify-center mb-4">
-                            <CheckCircleIcon size={32} className="text-emerald-500" />
+                        <View className="h-16 w-16 rounded-full bg-success/10 items-center justify-center mb-4">
+                            <CheckCircleIcon size={32} className="text-success" />
                         </View>
                         <Text className="text-lg font-bold text-center mb-2">Session Signer Added!</Text>
                         <Text className="text-muted-foreground text-center text-sm mb-4">

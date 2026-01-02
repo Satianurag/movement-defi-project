@@ -9,15 +9,15 @@ import { usePortfolio, PortfolioPosition } from '@/lib/usePortfolio';
 const getPositionIcon = (protocol: string) => {
     switch (protocol.toLowerCase()) {
         case 'meridian':
-            return { icon: LayersIcon, color: 'text-blue-500', bg: 'bg-blue-500/10' };
+            return { icon: LayersIcon, color: 'text-primary', bg: 'bg-primary/10' };
         case 'echelon market':
         case 'echelon':
-            return { icon: WalletIcon, color: 'text-purple-500', bg: 'bg-purple-500/10' };
+            return { icon: WalletIcon, color: 'text-accent', bg: 'bg-accent/10' };
         case 'satay finance':
         case 'satay':
-            return { icon: TrendingUpIcon, color: 'text-emerald-500', bg: 'bg-emerald-500/10' };
+            return { icon: TrendingUpIcon, color: 'text-success', bg: 'bg-success/10' };
         default:
-            return { icon: WalletIcon, color: 'text-gray-500', bg: 'bg-gray-500/10' };
+            return { icon: WalletIcon, color: 'text-muted-foreground', bg: 'bg-muted' };
     }
 };
 
@@ -63,9 +63,9 @@ export function PortfolioSection() {
         <View className="gap-4 pt-4 border-t border-border">
             <View className="flex-row items-center justify-between">
                 <Text className="text-xl font-bold text-foreground">My Positions</Text>
-                <View className="flex-row items-center gap-1 bg-emerald-500/10 px-2 py-1 rounded-full">
-                    <TrendingUpIcon size={12} className="text-emerald-500" />
-                    <Text className="text-xs font-medium text-emerald-500">Live</Text>
+                <View className="flex-row items-center gap-1 bg-success/10 px-2 py-1 rounded-full">
+                    <TrendingUpIcon size={12} className="text-success" />
+                    <Text className="text-xs font-medium text-success">Live</Text>
                 </View>
             </View>
 
@@ -78,7 +78,7 @@ export function PortfolioSection() {
                             {portfolio.totalNetWorth}
                         </Text>
                         {portfolio.netWorthChange && (
-                            <Text className="text-xs text-emerald-500 font-medium">
+                            <Text className="text-xs text-success font-medium">
                                 {portfolio.netWorthChange}
                             </Text>
                         )}
@@ -104,7 +104,7 @@ export function PortfolioSection() {
                             <View className="items-end">
                                 <Text className="font-bold text-foreground">{pos.amount}</Text>
                                 {pos.apy && (
-                                    <Text className="text-xs text-emerald-500">{pos.apy} APY</Text>
+                                    <Text className="text-xs text-success">{pos.apy} APY</Text>
                                 )}
                             </View>
                         </Card>

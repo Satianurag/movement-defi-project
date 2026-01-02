@@ -84,7 +84,7 @@ export function FarmList() {
 
             {/* Header */}
             <View className="flex-row items-center gap-2 mb-4">
-                <LeafIcon size={24} className="text-emerald-500" />
+                <LeafIcon size={24} className="text-success" />
                 <Text className="text-2xl font-bold text-foreground">Farms</Text>
             </View>
 

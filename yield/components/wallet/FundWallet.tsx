@@ -46,8 +46,8 @@ export function FundWallet({ onSuccess, onCancel }: FundWalletProps) {
                 name: 'Coinbase Pay',
                 description: 'Buy crypto with your Coinbase account',
                 icon: WalletIcon,
-                color: 'text-blue-600',
-                bgColor: 'bg-blue-500/10',
+                color: 'text-primary',
+                bgColor: 'bg-primary/10',
             },
             {
                 id: 'moonpay',

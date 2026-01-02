@@ -26,7 +26,7 @@ export function RouteSummary({ route, priceImpact, minReceived, tokenOut, isLoad
 
     if (!route || route.length === 0) return null;
 
-    const impactColor = parseFloat(priceImpact) > 1 ? 'text-destructive' : parseFloat(priceImpact) > 0.5 ? 'text-amber-500' : 'text-emerald-500';
+    const impactColor = parseFloat(priceImpact) > 1 ? 'text-destructive' : parseFloat(priceImpact) > 0.5 ? 'text-amber-500' : 'text-success';
 
     return (
         <View className="gap-3">

@@ -307,8 +307,8 @@ export function LinkAccounts({ onAccountLinked }: LinkAccountsProps) {
                                     className="flex-row items-center justify-between p-4 rounded-lg border border-border active:bg-muted"
                                 >
                                     <View className="flex-row items-center gap-3">
-                                        <View className="h-10 w-10 rounded-full bg-emerald-500/10 items-center justify-center">
-                                            <PhoneIcon size={20} className="text-emerald-500" />
+                                        <View className="h-10 w-10 rounded-full bg-success/10 items-center justify-center">
+                                            <PhoneIcon size={20} className="text-success" />
                                         </View>
                                         <Text className="font-medium">Link Phone</Text>
                                     </View>
@@ -352,8 +352,8 @@ export function LinkAccounts({ onAccountLinked }: LinkAccountsProps) {
                                 className="flex-row items-center justify-between p-4 rounded-lg border border-border active:bg-muted"
                             >
                                 <View className="flex-row items-center gap-3">
-                                    <View className="h-10 w-10 rounded-full bg-blue-500/10 items-center justify-center">
-                                        <FingerprintIcon size={20} className="text-blue-500" />
+                                    <View className="h-10 w-10 rounded-full bg-primary/10 items-center justify-center">
+                                        <FingerprintIcon size={20} className="text-primary" />
                                     </View>
                                     <View>
                                         <Text className="font-medium">Add Passkey</Text>
@@ -380,7 +380,7 @@ export function LinkAccounts({ onAccountLinked }: LinkAccountsProps) {
                                     disabled={isLinked(provider.id)}
                                 >
                                     {isLinked(provider.id) ? (
-                                        <CheckCircleIcon size={14} className="text-emerald-500 mr-1" />
+                                        <CheckCircleIcon size={14} className="text-success mr-1" />
                                     ) : null}
                                     <Text className={isLinked(provider.id) ? 'text-muted-foreground' : ''}>
                                         {provider.name}

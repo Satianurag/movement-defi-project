@@ -122,14 +122,14 @@ export default function SignInScreen() {
             >
                 <View className="flex-1 justify-center px-6 py-12">
                     {/* Header */}
-                    <View className="items-center mb-8">
-                        {/* Logo Container with Gradient Ring */}
-                        <View className="relative mb-4">
-                            <View className="h-24 w-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 items-center justify-center border-2 border-primary/30">
-                                <WalletIcon size={48} className="text-primary" strokeWidth={1.5} />
+                    <View className="items-center mb-10">
+                        {/* Logo Container with Glow Effect */}
+                        <View className="relative mb-6">
+                            <View className="h-28 w-28 rounded-3xl bg-primary/10 items-center justify-center border border-primary/30">
+                                <WalletIcon size={56} className="text-primary" strokeWidth={1} />
                             </View>
-                            {/* Decorative Ring */}
-                            <View className="absolute -inset-1 rounded-full border border-primary/10" />
+                            {/* Accent Glow */}
+                            <View className="absolute -inset-4 rounded-full bg-primary/5 blur-3xl" />
                         </View>
                         {/* App Name */}
                         <Text className="text-4xl font-bold text-foreground mb-1 tracking-tight">

@@ -48,8 +48,8 @@ export function MFASetup({ onEnabled, onCancel }: MFASetupProps) {
                 name: 'SMS Verification',
                 description: 'Receive codes via text message',
                 icon: SmartphoneIcon,
-                color: 'text-blue-500',
-                bgColor: 'bg-blue-500/10',
+                color: 'text-primary',
+                bgColor: 'bg-primary/10',
             },
             {
                 id: 'totp',
@@ -64,8 +64,8 @@ export function MFASetup({ onEnabled, onCancel }: MFASetupProps) {
                 name: 'Passkey',
                 description: 'Biometric or hardware key',
                 icon: FingerprintIcon,
-                color: 'text-emerald-500',
-                bgColor: 'bg-emerald-500/10',
+                color: 'text-success',
+                bgColor: 'bg-success/10',
             },
         ];
 
@@ -164,9 +164,9 @@ export function MFASetup({ onEnabled, onCancel }: MFASetupProps) {
             <CardHeader>
                 <View className="flex-row items-center justify-between">
                     <CardTitle className="text-xl">Multi-Factor Authentication</CardTitle>
-                    <Badge variant="outline" className="border-emerald-500/30">
-                        <ShieldCheckIcon size={12} className="text-emerald-500 mr-1" />
-                        <Text className="text-emerald-500 text-xs">Security</Text>
+                    <Badge variant="outline" className="border-success/30">
+                        <ShieldCheckIcon size={12} className="text-success mr-1" />
+                        <Text className="text-success text-xs">Security</Text>
                     </Badge>
                 </View>
                 <CardDescription>

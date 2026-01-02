@@ -14,16 +14,17 @@ export default function TabLayout() {
                 tabBarActiveTintColor: theme.primary,
                 tabBarInactiveTintColor: theme.mutedForeground,
                 tabBarStyle: {
-                    backgroundColor: theme.background,
-                    borderTopColor: theme.border,
+                    backgroundColor: 'black',
+                    borderTopColor: 'hsl(220 20% 10%)',
+                    borderTopWidth: 1,
                     paddingTop: 8,
                     paddingBottom: 8,
                     height: 70,
                 },
                 tabBarLabelStyle: {
-                    fontSize: 12,
-                    fontWeight: '500',
-                    marginTop: 4,
+                    fontSize: 11,
+                    fontWeight: '600',
+                    marginTop: 2,
                 },
             }}>
             <Tabs.Screen

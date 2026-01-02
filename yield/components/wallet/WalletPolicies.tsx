@@ -157,8 +157,8 @@ export function WalletPolicies({ onSave, onCancel }: WalletPoliciesProps) {
                                 className="w-full h-20 justify-start"
                                 onPress={() => setStep('limits')}
                             >
-                                <View className="h-12 w-12 rounded-full bg-blue-500/10 items-center justify-center mr-3">
-                                    <DollarSignIcon size={24} className="text-blue-500" />
+                                <View className="h-12 w-12 rounded-full bg-primary/10 items-center justify-center mr-3">
+                                    <DollarSignIcon size={24} className="text-primary" />
                                 </View>
                                 <View className="flex-1">
                                     <Text className="font-semibold text-left">Spending Limits</Text>
@@ -181,8 +181,8 @@ export function WalletPolicies({ onSave, onCancel }: WalletPoliciesProps) {
                                 className="w-full h-20 justify-start"
                                 onPress={() => setStep('allowlist')}
                             >
-                                <View className="h-12 w-12 rounded-full bg-emerald-500/10 items-center justify-center mr-3">
-                                    <ListIcon size={24} className="text-emerald-500" />
+                                <View className="h-12 w-12 rounded-full bg-success/10 items-center justify-center mr-3">
+                                    <ListIcon size={24} className="text-success" />
                                 </View>
                                 <View className="flex-1">
                                     <Text className="font-semibold text-left">Address Allowlist</Text>

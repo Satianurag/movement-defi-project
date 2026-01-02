@@ -19,7 +19,7 @@ export function HealthFactorBar({ healthFactor, status, description }: HealthFac
 
     const getStatusColor = () => {
         switch (status) {
-            case 'safe': return 'text-emerald-500';
+            case 'safe': return 'text-success';
             case 'warning': return 'text-amber-500';
             case 'danger': return 'text-red-500';
             default: return 'text-muted-foreground';
@@ -28,7 +28,7 @@ export function HealthFactorBar({ healthFactor, status, description }: HealthFac
 
     const getProgressColor = () => {
         switch (status) {
-            case 'safe': return 'bg-emerald-500';
+            case 'safe': return 'bg-success';
             case 'warning': return 'bg-amber-500';
             case 'danger': return 'bg-red-500';
             default: return 'bg-muted-foreground';
@@ -37,7 +37,7 @@ export function HealthFactorBar({ healthFactor, status, description }: HealthFac
 
     const StatusIcon = () => {
         switch (status) {
-            case 'safe': return <ShieldIcon size={20} className="text-emerald-500" />;
+            case 'safe': return <ShieldIcon size={20} className="text-success" />;
             case 'warning': return <ShieldAlertIcon size={20} className="text-amber-500" />;
             case 'danger': return <ShieldXIcon size={20} className="text-red-500" />;
             default: return <ShieldIcon size={20} className="text-muted-foreground" />;
@@ -68,7 +68,7 @@ export function HealthFactorBar({ healthFactor, status, description }: HealthFac
             <View className="flex-row justify-between">
                 <Text className="text-xs text-red-500">0 (Liquidation)</Text>
                 <Text className="text-xs text-amber-500">1.0</Text>
-                <Text className="text-xs text-emerald-500">2.0+ (Safe)</Text>
+                <Text className="text-xs text-success">2.0+ (Safe)</Text>
             </View>
 
             {/* Description */}

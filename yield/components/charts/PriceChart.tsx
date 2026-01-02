@@ -22,7 +22,7 @@ export function PriceChart({
     data,
     height = 200,
     width = Dimensions.get('window').width - 48, // Default padded width
-    color = '#10B981', // Emerald 500
+    color = '#FA4616', // Primary Orange
     loading = false
 }: PriceChartProps) {
 

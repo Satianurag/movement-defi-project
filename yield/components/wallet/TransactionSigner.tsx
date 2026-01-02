@@ -57,8 +57,8 @@ export function TransactionSigner({ onComplete, onCancel }: TransactionSignerPro
                 name: 'Sign Message',
                 description: 'Sign a plain text message',
                 icon: PenToolIcon,
-                color: 'text-blue-500',
-                bgColor: 'bg-blue-500/10',
+                color: 'text-primary',
+                bgColor: 'bg-primary/10',
             },
             {
                 id: 'typed-data',
@@ -73,8 +73,8 @@ export function TransactionSigner({ onComplete, onCancel }: TransactionSignerPro
                 name: 'Send Transaction',
                 description: 'Send ETH/tokens to an address',
                 icon: SendIcon,
-                color: 'text-emerald-500',
-                bgColor: 'bg-emerald-500/10',
+                color: 'text-success',
+                bgColor: 'bg-success/10',
             },
         ];
 
@@ -292,16 +292,16 @@ export function TransactionSigner({ onComplete, onCancel }: TransactionSignerPro
 
                 {/* Result Display */}
                 {signature && (
-                    <View className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3">
+                    <View className="bg-success/10 border border-success/20 rounded-lg p-3">
                         <View className="flex-row items-center justify-between mb-2">
-                            <Text className="text-sm font-medium text-emerald-600">Signature</Text>
+                            <Text className="text-sm font-medium text-success">Signature</Text>
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onPress={() => handleCopy(signature)}
                             >
                                 {copied ? (
-                                    <CheckCircleIcon size={14} className="text-emerald-500" />
+                                    <CheckCircleIcon size={14} className="text-success" />
                                 ) : (
                                     <CopyIcon size={14} className="text-muted-foreground" />
                                 )}
@@ -314,16 +314,16 @@ export function TransactionSigner({ onComplete, onCancel }: TransactionSignerPro
                 )}
 
                 {txHash && (
-                    <View className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3">
+                    <View className="bg-success/10 border border-success/20 rounded-lg p-3">
                         <View className="flex-row items-center justify-between mb-2">
-                            <Text className="text-sm font-medium text-emerald-600">Transaction Hash</Text>
+                            <Text className="text-sm font-medium text-success">Transaction Hash</Text>
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onPress={() => handleCopy(txHash)}
                             >
                                 {copied ? (
-                                    <CheckCircleIcon size={14} className="text-emerald-500" />
+                                    <CheckCircleIcon size={14} className="text-success" />
                                 ) : (
                                     <CopyIcon size={14} className="text-muted-foreground" />
                                 )}

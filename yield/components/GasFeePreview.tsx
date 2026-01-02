@@ -4,26 +4,32 @@ import { Text } from '@/components/ui/text';
 import { FuelIcon } from 'lucide-react-native';
 import { createPublicClient, http, formatGwei } from 'viem';
 
+// RPC endpoints to try in order (mainnet is more stable)
+const RPC_ENDPOINTS = [
+    'https://movement.lava.build',
+    'https://mevm.testnet.imola.movementlabs.xyz',
+];
 
-// Define Movement Testnet chain if not available in viem/chains standard list
-const movementChain = {
-    id: 30732,
-    name: 'Movement Testnet',
-    network: 'movement-testnet',
+// Movement Mainnet chain configuration
+const movementMainnet = {
+    id: 3073,
+    name: 'Movement Mainnet',
+    network: 'movement',
     nativeCurrency: {
         name: 'Move',
         symbol: 'MOVE',
         decimals: 18,
     },
     rpcUrls: {
-        default: { http: ['https://mevm.testnet.imola.movementlabs.xyz'] },
-        public: { http: ['https://mevm.testnet.imola.movementlabs.xyz'] },
+        default: { http: [RPC_ENDPOINTS[0]] },
+        public: { http: [RPC_ENDPOINTS[0]] },
     },
 } as const;
 
-const client = createPublicClient({
-    chain: movementChain,
-    transport: http()
+// Create clients for each RPC endpoint
+const createClient = (rpcUrl: string) => createPublicClient({
+    chain: { ...movementMainnet, rpcUrls: { default: { http: [rpcUrl] }, public: { http: [rpcUrl] } } },
+    transport: http(rpcUrl, { timeout: 5000 })
 });
 
 export function GasFeePreview() {
@@ -31,12 +37,20 @@ export function GasFeePreview() {
 
     useEffect(() => {
         const fetchGas = async () => {
-            try {
-                const price = await client.getGasPrice();
-                setGasPrice(formatGwei(price));
-            } catch (e) {
-                console.error('Failed to fetch gas price', e);
+            // Try each RPC endpoint in order until one works
+            for (const rpcUrl of RPC_ENDPOINTS) {
+                try {
+                    const client = createClient(rpcUrl);
+                    const price = await client.getGasPrice();
+                    setGasPrice(formatGwei(price));
+                    return; // Success, exit the loop
+                } catch {
+                    // Try next endpoint
+                    continue;
+                }
             }
+            // All endpoints failed - show loading state instead of error
+            setGasPrice(null);
         };
         fetchGas();
         // Refresh every 30s

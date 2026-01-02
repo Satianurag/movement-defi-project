@@ -7,6 +7,18 @@ module.exports = {
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
+      fontFamily: {
+        // Inter font family with all weights
+        thin: ['Inter_100Thin'],
+        extralight: ['Inter_200ExtraLight'],
+        light: ['Inter_300Light'],
+        sans: ['Inter_400Regular'],
+        medium: ['Inter_500Medium'],
+        semibold: ['Inter_600SemiBold'],
+        bold: ['Inter_700Bold'],
+        extrabold: ['Inter_800ExtraBold'],
+        black: ['Inter_900Black'],
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

@@ -53,8 +53,8 @@ export function WalletRecovery({ onSetup, onCancel }: WalletRecoveryProps) {
                 name: 'Google Drive',
                 description: 'Backup to Google account',
                 icon: CloudIcon,
-                color: 'text-blue-500',
-                bgColor: 'bg-blue-500/10',
+                color: 'text-primary',
+                bgColor: 'bg-primary/10',
             },
             {
                 id: 'icloud',

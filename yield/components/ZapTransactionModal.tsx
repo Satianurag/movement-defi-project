@@ -38,13 +38,13 @@ export function ZapTransactionModal({
             id: 'initiating',
             label: 'Initiating Transaction',
             icon: CpuIcon,
-            activeColor: 'text-blue-500'
+            activeColor: 'text-primary'
         },
         {
             id: 'optimizing',
             label: 'Optimizing Strategy (Zap)',
             icon: LayersIcon,
-            activeColor: 'text-purple-500',
+            activeColor: 'text-accent',
             desc: 'Calculating optimal swap ratio...'
         },
         {
@@ -58,7 +58,7 @@ export function ZapTransactionModal({
             id: 'adding_liquidity',
             label: 'Adding Liquidity',
             icon: CoinsIcon,
-            activeColor: 'text-emerald-500',
+            activeColor: 'text-success',
             desc: 'Depositing into pool...'
         },
     ];
@@ -105,13 +105,13 @@ export function ZapTransactionModal({
                                 <View key={s.id} className="flex-row items-center gap-3">
                                     <View className={cn(
                                         "w-8 h-8 rounded-full items-center justify-center border",
-                                        status === 'completed' ? "bg-emerald-500/20 border-emerald-500" :
+                                        status === 'completed' ? "bg-success/20 border-success" :
                                             status === 'active' ? "bg-primary/20 border-primary" :
                                                 status === 'error' ? "bg-red-500/20 border-red-500" :
                                                     "bg-muted border-border"
                                     )}>
                                         {status === 'completed' ? (
-                                            <CheckCircle2Icon size={16} className="text-emerald-500" />
+                                            <CheckCircle2Icon size={16} className="text-success" />
                                         ) : status === 'active' ? (
                                             <ActivityIndicator size="small" color="#EAB308" />
                                         ) : (
@@ -142,8 +142,8 @@ export function ZapTransactionModal({
                     {(isSuccess || isError) && (
                         <Animated.View entering={FadeInDown}>
                             {isSuccess && (
-                                <View className="bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/20 mb-4">
-                                    <Text className="text-emerald-500 text-center text-sm">
+                                <View className="bg-success/10 p-3 rounded-lg border border-success/20 mb-4">
+                                    <Text className="text-success text-center text-sm">
                                         Successfully Zapped into the pool!
                                     </Text>
                                     <Text className="text-xs text-muted-foreground text-center font-mono mt-1">

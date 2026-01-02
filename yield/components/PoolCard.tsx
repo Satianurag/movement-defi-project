@@ -13,37 +13,37 @@ import {
 import { View, Pressable, Platform, TouchableOpacity } from 'react-native';
 import { useFavorites } from '@/context/FavoritesContext';
 
-// Category color mapping for visual distinction
+// Category color mapping - using primary orange for consistent branding
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
     'Yield Aggregator': {
-        bg: 'bg-emerald-500/10',
-        text: 'text-emerald-500',
-        border: 'border-emerald-500/20',
+        bg: 'bg-primary/10',
+        text: 'text-primary',
+        border: 'border-primary/20',
     },
     'DEX': {
-        bg: 'bg-blue-500/10',
-        text: 'text-blue-500',
-        border: 'border-blue-500/20',
+        bg: 'bg-primary/10',
+        text: 'text-primary',
+        border: 'border-primary/20',
     },
     'DEX/AMM': {
-        bg: 'bg-blue-500/10',
-        text: 'text-blue-500',
-        border: 'border-blue-500/20',
+        bg: 'bg-primary/10',
+        text: 'text-primary',
+        border: 'border-primary/20',
     },
     'Lending': {
-        bg: 'bg-purple-500/10',
-        text: 'text-purple-500',
-        border: 'border-purple-500/20',
+        bg: 'bg-accent/10',
+        text: 'text-accent',
+        border: 'border-accent/20',
     },
     'Liquidity Management': {
-        bg: 'bg-orange-500/10',
-        text: 'text-orange-500',
-        border: 'border-orange-500/20',
+        bg: 'bg-primary/10',
+        text: 'text-primary',
+        border: 'border-primary/20',
     },
     'Staking': {
-        bg: 'bg-cyan-500/10',
-        text: 'text-cyan-500',
-        border: 'border-cyan-500/20',
+        bg: 'bg-accent/10',
+        text: 'text-accent',
+        border: 'border-accent/20',
     },
     default: {
         bg: 'bg-muted',
@@ -97,7 +97,7 @@ function getApyColorClass(apy?: string): string {
     const match = apy.match(/(\d+)/);
     if (!match) return 'text-muted-foreground';
     const value = parseInt(match[1], 10);
-    if (value >= 15) return 'text-emerald-500';
+    if (value >= 15) return 'text-success';
     if (value >= 8) return 'text-yellow-500';
     return 'text-muted-foreground';
 }
@@ -189,7 +189,7 @@ export function PoolCard({ pool, onPress }: PoolCardProps) {
                     <View className="flex-1 bg-muted/50 rounded-lg p-3">
                         <View className="flex-row items-center gap-1.5 mb-1">
                             {isPositive ? (
-                                <TrendingUpIcon size={12} className="text-emerald-500" />
+                                <TrendingUpIcon size={12} className="text-success" />
                             ) : (
                                 <TrendingDownIcon size={12} className="text-red-500" />
                             )}
@@ -198,7 +198,7 @@ export function PoolCard({ pool, onPress }: PoolCardProps) {
                         <Text
                             className={cn(
                                 'text-base font-bold',
-                                isPositive ? 'text-emerald-500' : 'text-red-500'
+                                isPositive ? 'text-success' : 'text-red-500'
                             )}
                         >
                             {isPositive ? '+' : '-'}{changeValue}

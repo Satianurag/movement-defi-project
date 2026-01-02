@@ -85,16 +85,16 @@ export function FarmCard({ farm, position, onStake, onUnstake }: FarmCardProps) 
             <CardHeader className="pb-2">
                 <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center gap-2">
-                        <View className="h-10 w-10 rounded-full bg-emerald-500/10 items-center justify-center">
-                            <CoinsIcon size={20} className="text-emerald-500" />
+                        <View className="h-10 w-10 rounded-full bg-success/10 items-center justify-center">
+                            <CoinsIcon size={20} className="text-success" />
                         </View>
                         <View>
                             <CardTitle className="text-lg">{farm.lpToken}</CardTitle>
                             <CardDescription>Earn {farm.rewardToken}</CardDescription>
                         </View>
                     </View>
-                    <Badge variant="outline" className="bg-emerald-500/10 border-emerald-500/20">
-                        <Text className="text-emerald-500 text-xs font-bold">{farm.multiplier}x</Text>
+                    <Badge variant="outline" className="bg-success/10 border-success/20">
+                        <Text className="text-success text-xs font-bold">{farm.multiplier}x</Text>
                     </Badge>
                 </View>
             </CardHeader>
@@ -104,10 +104,10 @@ export function FarmCard({ farm, position, onStake, onUnstake }: FarmCardProps) 
                 <View className="flex-row gap-3 mb-4">
                     <View className="flex-1 bg-muted/50 rounded-lg p-3">
                         <View className="flex-row items-center gap-1.5 mb-1">
-                            <TrendingUpIcon size={12} className="text-emerald-500" />
+                            <TrendingUpIcon size={12} className="text-success" />
                             <Text className="text-xs text-muted-foreground">APR</Text>
                         </View>
-                        <Text className="text-lg font-bold text-emerald-500">
+                        <Text className="text-lg font-bold text-success">
                             {farm.apr.toFixed(1)}%
                         </Text>
                     </View>

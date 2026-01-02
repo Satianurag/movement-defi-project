@@ -31,8 +31,7 @@ export default function Screen() {
     return <Redirect href={'/onboarding' as any} />;
   }
 
-
-  // Completed onboarding but not logged in → sign in
+  // Not logged in → sign in
   if (!user) {
     return <Redirect href="/sign-in" />;
   }
@@ -40,4 +39,3 @@ export default function Screen() {
   // Logged in → main app
   return <Redirect href="/(tabs)/explore" />;
 }
-

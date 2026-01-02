@@ -47,7 +47,7 @@ export function USDMCard() {
     const getStatusColor = () => {
         if (!position) return 'text-muted-foreground';
         switch (position.status) {
-            case 'safe': return 'text-emerald-500';
+            case 'safe': return 'text-success';
             case 'warning': return 'text-amber-500';
             case 'danger': return 'text-red-500';
             default: return 'text-muted-foreground';
@@ -102,16 +102,16 @@ export function USDMCard() {
             <CardHeader className="pb-2">
                 <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center gap-2">
-                        <View className="h-10 w-10 rounded-full bg-blue-500/10 items-center justify-center">
-                            <DollarSignIcon size={20} className="text-blue-500" />
+                        <View className="h-10 w-10 rounded-full bg-primary/10 items-center justify-center">
+                            <DollarSignIcon size={20} className="text-primary" />
                         </View>
                         <View>
                             <CardTitle className="text-lg">USDM Stablecoin</CardTitle>
                             <CardDescription>Collateralized minting</CardDescription>
                         </View>
                     </View>
-                    <Badge variant="outline" className="bg-blue-500/10 border-blue-500/20">
-                        <Text className="text-blue-500 text-xs font-bold">1 USDM = $1</Text>
+                    <Badge variant="outline" className="bg-primary/10 border-primary/20">
+                        <Text className="text-primary text-xs font-bold">1 USDM = $1</Text>
                     </Badge>
                 </View>
             </CardHeader>
@@ -151,7 +151,7 @@ export function USDMCard() {
                                 <View
                                     className={cn(
                                         'h-full rounded-full',
-                                        position!.status === 'safe' ? 'bg-emerald-500' :
+                                        position!.status === 'safe' ? 'bg-success' :
                                             position!.status === 'warning' ? 'bg-amber-500' : 'bg-red-500'
                                     )}
                                     style={{ width: `${Math.min(position!.collateralRatio / 2, 100)}%` }}
@@ -159,7 +159,7 @@ export function USDMCard() {
                             </View>
                             <View className="flex-row justify-between mt-1">
                                 <Text className="text-xs text-red-500">110% (Min)</Text>
-                                <Text className="text-xs text-emerald-500">200%+ (Safe)</Text>
+                                <Text className="text-xs text-success">200%+ (Safe)</Text>
                             </View>
                         </View>
                     </View>
