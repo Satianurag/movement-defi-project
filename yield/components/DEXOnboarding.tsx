@@ -58,6 +58,9 @@ export function DEXOnboarding({ onComplete }: DEXOnboardingProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const scrollX = useSharedValue(0);
     const glowPulse = useSharedValue(0);
+    const iconScale = useSharedValue(0);
+    const progressWidth = useSharedValue(0);
+    const translationX = useSharedValue(0);
 
     // Pulsing glow animation
     useEffect(() => {
@@ -67,6 +70,22 @@ export function DEXOnboarding({ onComplete }: DEXOnboardingProps) {
             true
         );
     }, []);
+
+    // Icon entrance animation
+    useEffect(() => {
+        iconScale.value = 0;
+        iconScale.value = withSequence(
+            withSpring(1.2, { damping: 8, stiffness: 100 }),
+            withSpring(1, { damping: 10, stiffness: 100 })
+        );
+    }, [currentIndex]);
+
+    // Progress bar animation
+    useEffect(() => {
+        progressWidth.value = withTiming((currentIndex + 1) / SLIDES.length, {
+            duration: 500,
+        });
+    }, [currentIndex]);
 
     const handleNext = useCallback(() => {
         if (Platform.OS !== 'web') {
@@ -84,12 +103,44 @@ export function DEXOnboarding({ onComplete }: DEXOnboardingProps) {
         }
     }, [currentIndex, onComplete, scrollX]);
 
+    const handlePrevious = useCallback(() => {
+        if (Platform.OS !== 'web') {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+        
+        if (currentIndex > 0) {
+            setCurrentIndex(prev => prev - 1);
+            scrollX.value = withSpring((currentIndex - 1) * width, {
+                damping: 20,
+                stiffness: 90,
+            });
+        }
+    }, [currentIndex, scrollX]);
+
     const handleSkip = useCallback(() => {
         if (Platform.OS !== 'web') {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
         onComplete();
     }, [onComplete]);
+
+    // Swipe gesture handler
+    const panGesture = Gesture.Pan()
+        .onUpdate((event) => {
+            translationX.value = event.translationX;
+        })
+        .onEnd((event) => {
+            const shouldMoveNext = event.translationX < -50 && currentIndex < SLIDES.length - 1;
+            const shouldMovePrev = event.translationX > 50 && currentIndex > 0;
+
+            if (shouldMoveNext) {
+                runOnJS(handleNext)();
+            } else if (shouldMovePrev) {
+                runOnJS(handlePrevious)();
+            }
+
+            translationX.value = withSpring(0);
+        });
 
     const animatedStyle = useAnimatedStyle(() => {
         return {
