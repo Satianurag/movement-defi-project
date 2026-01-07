@@ -358,7 +358,7 @@ export default function PoolDetailScreen() {
                 className="flex-1 bg-background"
                 contentContainerStyle={{ paddingBottom: 32 }}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FA4616" colors={["#FA4616"]} />
                 }
             >
                 {/* Hero Section */}
