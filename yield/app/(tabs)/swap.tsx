@@ -150,7 +150,7 @@ export default function SwapScreen() {
             {/* Background Atmosphere */}
             <View className="absolute top-0 left-0 right-0 h-[400px]">
                 <LinearGradient
-                    colors={['rgba(59, 130, 246, 0.15)', 'transparent']}
+                    colors={['rgba(250, 70, 22, 0.08)', 'transparent']}
                     style={{ flex: 1 }}
                 />
             </View>
@@ -240,8 +240,8 @@ export default function SwapScreen() {
                                     onPress={() => setShowTokenSelector('out')}
                                     className="bg-background flex-row items-center gap-2 px-3 py-1.5 rounded-full border border-border ml-3 shadow-sm"
                                 >
-                                    <View className="w-5 h-5 rounded-full bg-emerald-500/20 items-center justify-center">
-                                        <Text className="text-[10px] font-bold text-emerald-500">{tokenOut.symbol[0]}</Text>
+                                    <View className="w-5 h-5 rounded-full bg-success/20 items-center justify-center">
+                                        <Text className="text-[10px] font-bold text-success">{tokenOut.symbol[0]}</Text>
                                     </View>
                                     <Text className="font-bold text-base">{tokenOut.symbol}</Text>
                                     <ArrowDownIcon size={14} className="text-muted-foreground" />

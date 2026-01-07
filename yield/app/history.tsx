@@ -29,9 +29,9 @@ export default function HistoryScreen() {
                 <View className="flex-row items-center justify-between mb-2">
                     <View className="flex-row items-center gap-2">
                         {item.success ? (
-                            <CheckCircleIcon size={18} className="text-emerald-500" />
+                            <CheckCircleIcon size={18} className="text-success" />
                         ) : (
-                            <XCircleIcon size={18} className="text-red-500" />
+                            <XCircleIcon size={18} className="text-destructive" />
                         )}
                         <Text className="font-bold text-foreground text-base">
                             {functionName}
@@ -48,8 +48,8 @@ export default function HistoryScreen() {
                         </Text>
                     </View>
                     <View className="flex-row items-center gap-2">
-                        <Badge variant="outline" className={item.success ? "bg-emerald-500/10 border-emerald-500/20" : "bg-red-500/10 border-red-500/20"}>
-                            <Text className={item.success ? "text-emerald-500 text-xs" : "text-red-500 text-xs"}>
+                        <Badge variant={item.success ? "success" : "destructive"} className={item.success ? "bg-success/10 border-success/20" : "bg-destructive/10 border-destructive/20"}>
+                            <Text className={item.success ? "text-success text-xs" : "text-destructive text-xs"}>
                                 {item.success ? 'Success' : 'Failed'}
                             </Text>
                         </Badge>

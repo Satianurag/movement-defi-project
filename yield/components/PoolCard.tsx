@@ -1,56 +1,13 @@
 import { Text } from '@/components/ui/text';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import {
     TrendingUpIcon,
     TrendingDownIcon,
-    CoinsIcon,
-    PercentIcon,
-    LayersIcon,
-    HeartIcon,
+    ChevronRightIcon,
 } from 'lucide-react-native';
-import { View, Pressable, Platform, TouchableOpacity } from 'react-native';
-import { useFavorites } from '@/context/FavoritesContext';
-
-// Category color mapping - using primary orange for consistent branding
-const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-    'Yield Aggregator': {
-        bg: 'bg-primary/10',
-        text: 'text-primary',
-        border: 'border-primary/20',
-    },
-    'DEX': {
-        bg: 'bg-primary/10',
-        text: 'text-primary',
-        border: 'border-primary/20',
-    },
-    'DEX/AMM': {
-        bg: 'bg-primary/10',
-        text: 'text-primary',
-        border: 'border-primary/20',
-    },
-    'Lending': {
-        bg: 'bg-accent/10',
-        text: 'text-accent',
-        border: 'border-accent/20',
-    },
-    'Liquidity Management': {
-        bg: 'bg-primary/10',
-        text: 'text-primary',
-        border: 'border-primary/20',
-    },
-    'Staking': {
-        bg: 'bg-accent/10',
-        text: 'text-accent',
-        border: 'border-accent/20',
-    },
-    default: {
-        bg: 'bg-muted',
-        text: 'text-muted-foreground',
-        border: 'border-border',
-    },
-};
+import { View, Pressable, Platform } from 'react-native';
 
 export interface PoolData {
     name: string;
@@ -67,154 +24,105 @@ export interface PoolData {
 interface PoolCardProps {
     pool: PoolData;
     onPress?: () => void;
+    loading?: boolean;
 }
 
-// Format large numbers (e.g., 36907132 -> $36.9M)
 function formatTVL(value: number): string {
-    if (value >= 1_000_000_000) {
-        return `$${(value / 1_000_000_000).toFixed(2)}B`;
-    }
-    if (value >= 1_000_000) {
-        return `$${(value / 1_000_000).toFixed(2)}M`;
-    }
-    if (value >= 1_000) {
-        return `$${(value / 1_000).toFixed(2)}K`;
-    }
-    return `$${value.toFixed(2)}`;
+    if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;
+    if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+    if (value >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
+    return `$${value.toFixed(0)}`;
 }
 
-// Parse change string to determine if positive/negative
 function parseChange(change?: string): { value: string; isPositive: boolean } {
     if (!change) return { value: '0%', isPositive: true };
     const isPositive = !change.startsWith('-');
     return { value: change.replace(/^-/, ''), isPositive };
 }
 
-// Get APY color based on value range
-function getApyColorClass(apy?: string): string {
-    if (!apy) return 'text-muted-foreground';
-    // Extract first number from APY string (e.g., "8-15%" -> 8)
-    const match = apy.match(/(\d+)/);
-    if (!match) return 'text-muted-foreground';
-    const value = parseInt(match[1], 10);
-    if (value >= 15) return 'text-success';
-    if (value >= 8) return 'text-yellow-500';
-    return 'text-muted-foreground';
+// Skeleton loading state
+function PoolCardSkeleton() {
+    return (
+        <Card className="overflow-hidden border-border/50">
+            <View className="flex-row items-center justify-between p-4">
+                {/* Left: Name & Category skeleton */}
+                <View className="flex-1 mr-3 gap-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                </View>
+
+                {/* Right: APY & Change skeleton */}
+                <View className="items-end mr-2 gap-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-3 w-12" />
+                </View>
+
+                {/* Chevron placeholder */}
+                <View className="w-[18px]" />
+            </View>
+        </Card>
+    );
 }
 
-export function PoolCard({ pool, onPress }: PoolCardProps) {
-    const categoryStyle = CATEGORY_COLORS[pool.category] || CATEGORY_COLORS.default;
+export function PoolCard({ pool, onPress, loading }: PoolCardProps) {
+    if (loading) {
+        return <PoolCardSkeleton />;
+    }
+
     const { value: changeValue, isPositive } = parseChange(pool.change_7d);
-    const apyColor = getApyColorClass(pool.apy);
 
-    // Safety check for pool.slug or pool.name as ID
-    const poolId = pool.slug || pool.name;
-    const { isFavorite, toggleFavorite } = useFavorites();
-    const isFav = isFavorite(poolId);
-
-    const handleFavorite = (e: any) => {
-        e.stopPropagation();
-        toggleFavorite(poolId);
-    };
+    // Determine APY color based on value
+    const apyColor = pool.apy?.includes('%')
+        ? 'text-primary'
+        : 'text-foreground';
 
     return (
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden border-border/50">
             <Pressable
                 onPress={onPress}
                 className={cn(
-                    'p-4',
+                    'flex-row items-center justify-between p-4',
                     'active:bg-muted/50',
                     Platform.select({
-                        web: 'hover:bg-muted/20 transition-colors duration-200 cursor-pointer',
+                        web: 'hover:bg-muted/20 transition-colors cursor-pointer',
                     })
                 )}
+                accessibilityRole="button"
+                accessibilityLabel={`${pool.name} pool with ${pool.apy || 'unknown'} APY`}
             >
-                {/* Header: Name + Category */}
-                <View className="flex-row items-start justify-between mb-4">
-                    <View className="flex-1">
-                        <View className="flex-row items-center gap-2 mb-1">
-                            <View className="h-8 w-8 rounded-full bg-primary/10 items-center justify-center">
-                                <LayersIcon size={16} className="text-primary" />
-                            </View>
-                            <Text className="text-lg font-semibold text-foreground">
-                                {pool.name}
-                            </Text>
-                        </View>
-                    </View>
-                    {/* Category Badge */}
-                    <Badge variant="outline" className={cn(categoryStyle.bg, categoryStyle.border)}>
-                        <Text className={cn('text-[10px] font-bold uppercase tracking-wider', categoryStyle.text)}>
-                            {pool.category}
-                        </Text>
-                    </Badge>
-
-                    {/* Favorite Button */}
-                    <TouchableOpacity
-                        onPress={handleFavorite}
-                        className="ml-2 h-8 w-8 items-center justify-center rounded-full active:bg-muted/50"
-                    >
-                        <HeartIcon
-                            size={20}
-                            className={isFav ? "text-red-500 fill-red-500" : "text-muted-foreground"}
-                            fill={isFav ? "currentColor" : "none"}
-                        />
-                    </TouchableOpacity>
+                {/* Left: Name & Category */}
+                <View className="flex-1 mr-3">
+                    <Text className="text-base font-semibold text-foreground" numberOfLines={1}>
+                        {pool.name}
+                    </Text>
+                    <Text className="text-xs text-muted-foreground mt-0.5" numberOfLines={1}>
+                        {pool.category} · {formatTVL(pool.tvl)}
+                    </Text>
                 </View>
 
-                {/* Metrics Grid */}
-                <View className="flex-row gap-4">
-                    {/* TVL */}
-                    <View className="flex-1 bg-muted/50 rounded-lg p-3">
-                        <View className="flex-row items-center gap-1.5 mb-1">
-                            <CoinsIcon size={12} className="text-muted-foreground" />
-                            <Text className="text-xs text-muted-foreground font-medium">TVL</Text>
-                        </View>
-                        <Text className="text-base font-bold text-foreground">
-                            {formatTVL(pool.tvl)}
-                        </Text>
-                    </View>
-
-                    {/* APY */}
-                    <View className="flex-1 bg-muted/50 rounded-lg p-3">
-                        <View className="flex-row items-center gap-1.5 mb-1">
-                            <PercentIcon size={12} className="text-muted-foreground" />
-                            <Text className="text-xs text-muted-foreground font-medium">APY</Text>
-                        </View>
-                        <Text className={cn('text-base font-bold', apyColor)}>
-                            {pool.apy || 'N/A'}
-                        </Text>
-                    </View>
-
-                    {/* 7D Change */}
-                    <View className="flex-1 bg-muted/50 rounded-lg p-3">
-                        <View className="flex-row items-center gap-1.5 mb-1">
-                            {isPositive ? (
-                                <TrendingUpIcon size={12} className="text-success" />
-                            ) : (
-                                <TrendingDownIcon size={12} className="text-red-500" />
-                            )}
-                            <Text className="text-xs text-muted-foreground font-medium">7D</Text>
-                        </View>
-                        <Text
-                            className={cn(
-                                'text-base font-bold',
-                                isPositive ? 'text-success' : 'text-red-500'
-                            )}
-                        >
+                {/* Right: APY & Change */}
+                <View className="items-end mr-2">
+                    <Text className={cn('text-base font-bold', apyColor)}>
+                        {pool.apy || 'N/A'}
+                    </Text>
+                    <View className="flex-row items-center gap-1 mt-0.5">
+                        {isPositive ? (
+                            <TrendingUpIcon size={10} className="text-success" />
+                        ) : (
+                            <TrendingDownIcon size={10} className="text-destructive" />
+                        )}
+                        <Text className={cn('text-xs font-medium', isPositive ? 'text-success' : 'text-destructive')}>
                             {isPositive ? '+' : '-'}{changeValue}
                         </Text>
                     </View>
                 </View>
 
-                {/* APY Source Note (subtle footer) */}
-                {pool.apyNote && (
-                    <View className="mt-3 pt-3 border-t border-border/50">
-                        <Text className="text-xs text-muted-foreground italic">
-                            {pool.apyNote}
-                        </Text>
-                    </View>
-                )}
+                {/* Chevron */}
+                <ChevronRightIcon size={18} className="text-muted-foreground" />
             </Pressable>
         </Card>
     );
 }
+
+export { PoolCardSkeleton };
+

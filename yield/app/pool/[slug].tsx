@@ -39,15 +39,15 @@ import { BorrowRepayModal } from '@/components/lending/BorrowRepayModal';
 import { API_URL as API_BASE_URL } from '@/lib/api-config';
 import { useEchelon } from '@/lib/useEchelon';
 
-// Category colors
+// Category colors - using brand-consistent palette
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-    'Yield Aggregator': { bg: 'bg-purple-500/10', text: 'text-purple-500', border: 'border-purple-500/20' },
-    'Dexs': { bg: 'bg-blue-500/10', text: 'text-blue-500', border: 'border-blue-500/20' },
-    'Lending': { bg: 'bg-green-500/10', text: 'text-green-500', border: 'border-green-500/20' },
-    'Liquid Staking': { bg: 'bg-orange-500/10', text: 'text-orange-500', border: 'border-orange-500/20' },
-    'Liquidity Manager': { bg: 'bg-cyan-500/10', text: 'text-cyan-500', border: 'border-cyan-500/20' },
-    'DEX': { bg: 'bg-pink-500/10', text: 'text-pink-500', border: 'border-pink-500/20' },
-    default: { bg: 'bg-gray-500/10', text: 'text-gray-500', border: 'border-gray-500/20' },
+    'Yield Aggregator': { bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20' },
+    'Dexs': { bg: 'bg-accent/10', text: 'text-accent', border: 'border-accent/20' },
+    'Lending': { bg: 'bg-success/10', text: 'text-success', border: 'border-success/20' },
+    'Liquid Staking': { bg: 'bg-warning/10', text: 'text-warning', border: 'border-warning/20' },
+    'Liquidity Manager': { bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20' },
+    'DEX': { bg: 'bg-accent/10', text: 'text-accent', border: 'border-accent/20' },
+    default: { bg: 'bg-muted', text: 'text-muted-foreground', border: 'border-border' },
 };
 
 // Format large numbers
@@ -396,7 +396,7 @@ export default function PoolDetailScreen() {
                             </View>
                             <Text className={cn(
                                 'text-xl font-bold',
-                                pool.apy?.includes('%') ? 'text-emerald-500' : 'text-foreground'
+                                pool.apy?.includes('%') ? 'text-success' : 'text-foreground'
                             )}>
                                 {pool.apy || 'N/A'}
                             </Text>
@@ -405,15 +405,15 @@ export default function PoolDetailScreen() {
                         <Card className="flex-1 p-4 shadow-none border-border/50">
                             <View className="flex-row items-center gap-1.5 mb-1">
                                 {isPositive ? (
-                                    <TrendingUpIcon size={14} className="text-emerald-500" />
+                                    <TrendingUpIcon size={14} className="text-success" />
                                 ) : (
-                                    <TrendingDownIcon size={14} className="text-red-500" />
+                                    <TrendingDownIcon size={14} className="text-destructive" />
                                 )}
                                 <Text className="text-xs text-muted-foreground">7D</Text>
                             </View>
                             <Text className={cn(
                                 'text-xl font-bold',
-                                isPositive ? 'text-emerald-500' : 'text-red-500'
+                                isPositive ? 'text-success' : 'text-destructive'
                             )}>
                                 {isPositive ? '+' : '-'}{changeValue}
                             </Text>
@@ -484,13 +484,13 @@ export default function PoolDetailScreen() {
                                             </View>
                                             <View className="flex-row items-center gap-1">
                                                 {isPositive ? (
-                                                    <TrendingUpIcon size={14} className="text-emerald-500" />
+                                                    <TrendingUpIcon size={14} className="text-success" />
                                                 ) : (
-                                                    <TrendingDownIcon size={14} className="text-red-500" />
+                                                    <TrendingDownIcon size={14} className="text-destructive" />
                                                 )}
                                                 <Text className={cn(
                                                     'font-semibold',
-                                                    isPositive ? 'text-emerald-500' : 'text-red-500'
+                                                    isPositive ? 'text-success' : 'text-destructive'
                                                 )}>
                                                     {isPositive ? '+' : '-'}{changeValue}
                                                 </Text>
@@ -554,7 +554,7 @@ export default function PoolDetailScreen() {
                                     <View className="gap-4">
                                         <View className="flex-row justify-between items-center">
                                             <Text className="text-muted-foreground">Estimated APY</Text>
-                                            <Text className="font-semibold text-emerald-500 text-lg">
+                                            <Text className="font-semibold text-success text-lg">
                                                 {pool.apy}
                                             </Text>
                                         </View>
@@ -593,7 +593,7 @@ export default function PoolDetailScreen() {
                                 <CardContent>
                                     <View className="gap-3">
                                         <View className="flex-row items-center gap-3 bg-muted/50 rounded-lg p-3">
-                                            <ShieldCheckIcon size={20} className="text-emerald-500" />
+                                            <ShieldCheckIcon size={20} className="text-success" />
                                             <View className="flex-1">
                                                 <Text className="font-medium text-foreground">Protocol Risk</Text>
                                                 <Text className="text-xs text-muted-foreground">
@@ -603,7 +603,7 @@ export default function PoolDetailScreen() {
                                         </View>
 
                                         <View className="flex-row items-center gap-3 bg-muted/50 rounded-lg p-3">
-                                            <ClockIcon size={20} className="text-blue-500" />
+                                            <ClockIcon size={20} className="text-primary" />
                                             <View className="flex-1">
                                                 <Text className="font-medium text-foreground">TVL History</Text>
                                                 <Text className="text-xs text-muted-foreground">

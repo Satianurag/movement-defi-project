@@ -1,7 +1,12 @@
 import { TextClassContext } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { Platform, Pressable } from 'react-native';
+import { Platform, Pressable, View, ActivityIndicator } from 'react-native';
+import { Text } from '@/components/ui/text';
+import * as Haptics from 'expo-haptics';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const buttonVariants = cva(
   cn(
@@ -43,6 +48,7 @@ const buttonVariants = cva(
         default: cn('h-10 px-4 py-2 sm:h-9', Platform.select({ web: 'has-[>svg]:px-3' })),
         sm: cn('h-9 gap-1.5 rounded-md px-3 sm:h-8', Platform.select({ web: 'has-[>svg]:px-2.5' })),
         lg: cn('h-11 rounded-md px-6 sm:h-10', Platform.select({ web: 'has-[>svg]:px-4' })),
+        xl: cn('h-14 rounded-xl px-8', Platform.select({ web: 'has-[>svg]:px-6' })),
         icon: 'h-10 w-10 sm:h-9 sm:w-9',
       },
     },
@@ -78,6 +84,7 @@ const buttonTextVariants = cva(
         default: '',
         sm: '',
         lg: '',
+        xl: 'text-lg',
         icon: '',
       },
     },
@@ -90,13 +97,28 @@ const buttonTextVariants = cva(
 
 type ButtonProps = React.ComponentProps<typeof Pressable> &
   React.RefAttributes<typeof Pressable> &
-  VariantProps<typeof buttonVariants>;
+  VariantProps<typeof buttonVariants> & {
+    loading?: boolean;
+    onPress?: () => void;
+  };
 
-import { Text } from '@/components/ui/text';
-import * as Haptics from 'expo-haptics';
+function Button({ className, variant, size, onPress, loading, disabled, ...props }: ButtonProps) {
+  const scale = useSharedValue(1);
 
-function Button({ className, variant, size, onPress, ...props }: ButtonProps & { onPress?: () => void }) {
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.97, { damping: 15, stiffness: 400 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 400 });
+  };
+
   const handlePress = () => {
+    if (loading || disabled) return;
     // Trigger light haptic feedback on native platforms
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -104,23 +126,52 @@ function Button({ className, variant, size, onPress, ...props }: ButtonProps & {
     onPress?.();
   };
 
+  const isDisabled = disabled || loading;
+
   return (
     <TextClassContext.Provider value={buttonTextVariants({ variant, size })}>
-      <Pressable
-        className={cn(props.disabled && 'opacity-50', buttonVariants({ variant, size }), className)}
+      <AnimatedPressable
+        className={cn(isDisabled && 'opacity-50', buttonVariants({ variant, size }), className)}
+        style={animatedStyle}
         role="button"
         onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={isDisabled}
         {...props}
       >
-        {typeof props.children === 'string' || typeof props.children === 'number' ? (
+        {loading ? (
+          <View className="flex-row items-center gap-2">
+            <ActivityIndicator
+              size="small"
+              color={variant === 'default' || variant === 'destructive' ? '#FFFFFF' : '#FA4616'}
+            />
+            {typeof props.children === 'string' && (
+              <Text className="text-sm font-medium">Loading...</Text>
+            )}
+          </View>
+        ) : typeof props.children === 'string' || typeof props.children === 'number' ? (
           <Text className="text-sm font-medium">{props.children}</Text>
         ) : (
           props.children
         )}
-      </Pressable>
+      </AnimatedPressable>
     </TextClassContext.Provider>
   );
 }
 
-export { Button, buttonTextVariants, buttonVariants };
+// GlowButton - Button with animated glow effect for premium CTAs
+function GlowButton({ className, variant = 'default', ...props }: ButtonProps) {
+  return (
+    <View className="relative">
+      {variant === 'default' && (
+        <View className="absolute -inset-1 rounded-2xl opacity-50 blur-md bg-primary" />
+      )}
+      <Button variant={variant} className={cn('relative', className)} {...props} />
+    </View>
+  );
+}
+
+export { Button, GlowButton, buttonTextVariants, buttonVariants };
 export type { ButtonProps };
+

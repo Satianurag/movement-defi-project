@@ -1,10 +1,9 @@
-
 import { View, TextInput } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { Button } from '@/components/ui/button';
-import { PoolCard, PoolData } from '@/components/PoolCard';
-import { SearchIcon, SlidersHorizontalIcon, XIcon, ListFilterIcon } from 'lucide-react-native';
+import { PoolCard, PoolData, PoolCardSkeleton } from '@/components/PoolCard';
+import { SearchIcon, XIcon, ListIcon } from 'lucide-react-native';
 import { useState, useMemo } from 'react';
+import { Pressable } from 'react-native';
 
 interface PoolsListProps {
     pools: PoolData[];
@@ -12,83 +11,58 @@ interface PoolsListProps {
     isLoading?: boolean;
 }
 
+// Skeleton loading state component
+function PoolsListSkeleton() {
+    return (
+        <View className="gap-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+                <PoolCardSkeleton key={i} />
+            ))}
+        </View>
+    );
+}
+
 export function PoolsList({ pools, onPoolPress, isLoading }: PoolsListProps) {
     const [searchQuery, setSearchQuery] = useState('');
-    const [activeFilter, setActiveFilter] = useState<'all' | 'stable' | 'volatile'>('all');
-    const [isSearchVisible, setIsSearchVisible] = useState(false);
 
     const filteredPools = useMemo(() => {
-        return pools.filter(pool => {
-            const matchesSearch = pool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                pool.category?.toLowerCase().includes(searchQuery.toLowerCase());
-
-            if (activeFilter === 'all') return matchesSearch;
-
-            const isStable = pool.name.includes('USD') || pool.category?.includes('Stable');
-            return matchesSearch && (activeFilter === 'stable' ? isStable : !isStable);
-        });
-    }, [pools, searchQuery, activeFilter]);
+        if (!searchQuery.trim()) return pools;
+        const q = searchQuery.toLowerCase();
+        return pools.filter(pool =>
+            pool.name.toLowerCase().includes(q) ||
+            pool.category?.toLowerCase().includes(q)
+        );
+    }, [pools, searchQuery]);
 
     return (
-        <View className="px-4 pb-24">
-            {/* Header / Filter Bar */}
-            <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-xl font-black text-foreground">
-                    All Pools
-                </Text>
-
-                <View className="flex-row gap-2">
-                    <Button
-                        variant={isSearchVisible ? "secondary" : "ghost"}
-                        size="icon"
-                        className="h-9 w-9 rounded-full"
-                        onPress={() => {
-                            setIsSearchVisible(!isSearchVisible);
-                            if (isSearchVisible) setSearchQuery('');
-                        }}
+        <View className="flex-1 px-4 pt-4 pb-24">
+            {/* Simple Search Bar */}
+            <View className="flex-row items-center bg-muted/50 rounded-xl px-3 h-11 border border-border/50 mb-4">
+                <SearchIcon size={16} className="text-muted-foreground" />
+                <TextInput
+                    placeholder="Search pools..."
+                    placeholderTextColor="#71717A"
+                    className="flex-1 text-foreground text-sm ml-2"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    accessibilityLabel="Search pools"
+                    accessibilityHint="Type to filter pools by name or category"
+                />
+                {searchQuery.length > 0 && (
+                    <Pressable
+                        onPress={() => setSearchQuery('')}
+                        accessibilityLabel="Clear search"
+                        accessibilityRole="button"
                     >
-                        {isSearchVisible ? <XIcon size={18} className="text-foreground" /> : <SearchIcon size={18} className="text-foreground" />}
-                    </Button>
-                </View>
+                        <XIcon size={16} className="text-muted-foreground" />
+                    </Pressable>
+                )}
             </View>
 
-            {/* Expandable Search & Filter Area */}
-            {isSearchVisible && (
-                <View className="mb-4 gap-3 animate-in fade-in slide-in-from-top-2">
-                    <View className="flex-row items-center bg-muted/50 rounded-xl px-3 h-10 border border-border">
-                        <SearchIcon size={16} className="text-muted-foreground mr-2" />
-                        <TextInput
-                            placeholder="Search by name or token..."
-                            placeholderTextColor="#9CA3AF"
-                            className="flex-1 text-foreground text-sm h-full"
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                            autoFocus
-                        />
-                    </View>
-
-                    <View className="flex-row gap-2">
-                        {['all', 'stable', 'volatile'].map((filter) => (
-                            <Button
-                                key={filter}
-                                variant={activeFilter === filter ? 'default' : 'outline'}
-                                size="sm"
-                                className="h-7 rounded-full px-3"
-                                onPress={() => setActiveFilter(filter as any)}
-                            >
-                                <Text className={`text-xs capitalize ${activeFilter === filter ? 'text-primary-foreground' : 'text-muted-foreground'}`}>
-                                    {filter}
-                                </Text>
-                            </Button>
-                        ))}
-                    </View>
-                </View>
-            )}
-
-            {/* List */}
-            <View className="gap-3">
+            {/* Pool List */}
+            <View className="gap-2">
                 {isLoading ? (
-                    <Text className="text-center text-muted-foreground py-8">Loading opportunities...</Text>
+                    <PoolsListSkeleton />
                 ) : filteredPools.length > 0 ? (
                     filteredPools.map((pool) => (
                         <PoolCard
@@ -98,14 +72,30 @@ export function PoolsList({ pools, onPoolPress, isLoading }: PoolsListProps) {
                         />
                     ))
                 ) : (
-                    <View className="items-center py-8">
-                        <Text className="text-muted-foreground font-medium">No pools found matching your criteria</Text>
-                        <Button variant="link" onPress={() => { setSearchQuery(''); setActiveFilter('all'); }}>
-                            <Text className="text-primary">Clear all filters</Text>
-                        </Button>
+                    <View className="items-center py-12">
+                        <View className="h-16 w-16 rounded-full bg-muted items-center justify-center mb-4">
+                            <ListIcon size={28} className="text-muted-foreground" />
+                        </View>
+                        <Text className="text-lg font-semibold text-foreground mb-1">No pools found</Text>
+                        <Text className="text-muted-foreground text-center px-8">
+                            {searchQuery
+                                ? `No results for "${searchQuery}"`
+                                : 'No pools available at the moment'}
+                        </Text>
+                        {searchQuery && (
+                            <Pressable
+                                onPress={() => setSearchQuery('')}
+                                className="mt-4"
+                                accessibilityLabel="Clear search"
+                                accessibilityRole="button"
+                            >
+                                <Text className="text-primary font-semibold">Clear search</Text>
+                            </Pressable>
+                        )}
                     </View>
                 )}
             </View>
         </View>
     );
 }
+

@@ -28,6 +28,7 @@ module.exports = {
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
+          glow: 'hsl(var(--primary-glow) / 0.3)',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
@@ -36,6 +37,13 @@ module.exports = {
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
+        },
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          glow: 'hsl(var(--success-glow) / 0.3)',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
@@ -52,6 +60,7 @@ module.exports = {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
+          elevated: 'hsl(var(--card-elevated))',
         },
       },
       borderRadius: {

@@ -141,7 +141,7 @@ export default function SettingsScreen() {
                                 <Switch
                                     value={colorScheme === 'dark'}
                                     onValueChange={toggleColorScheme}
-                                    trackColor={{ false: '#767577', true: '#3b82f6' }}
+                                    trackColor={{ false: '#767577', true: '#FA4616' }}
                                     thumbColor={colorScheme === 'dark' ? '#ffffff' : '#f4f3f4'}
                                     testID="settings-dark-mode-toggle"
                                 />
@@ -163,8 +163,8 @@ export default function SettingsScreen() {
                                     testID="settings-mfa-button"
                                 >
                                     <View className="flex-row items-center gap-3">
-                                        <View className="h-10 w-10 rounded-full bg-emerald-500/10 items-center justify-center">
-                                            <ShieldCheckIcon size={20} className="text-emerald-500" />
+                                        <View className="h-10 w-10 rounded-full bg-success/10 items-center justify-center">
+                                            <ShieldCheckIcon size={20} className="text-success" />
                                         </View>
                                         <View>
                                             <Text className="font-medium text-foreground">
@@ -176,9 +176,9 @@ export default function SettingsScreen() {
                                         </View>
                                     </View>
                                     {hasMFA ? (
-                                        <Badge variant="default" className="bg-emerald-500/20">
-                                            <CheckCircleIcon size={12} className="text-emerald-500 mr-1" />
-                                            <Text className="text-emerald-500 text-xs">On</Text>
+                                        <Badge variant="success" className="bg-success/20">
+                                            <CheckCircleIcon size={12} className="text-success mr-1" />
+                                            <Text className="text-success text-xs">On</Text>
                                         </Badge>
                                     ) : (
                                         <ChevronRightIcon size={20} className="text-muted-foreground" />
@@ -263,8 +263,8 @@ export default function SettingsScreen() {
                                     testID="settings-history-button"
                                 >
                                     <View className="flex-row items-center gap-3">
-                                        <View className="h-10 w-10 rounded-full bg-blue-500/10 items-center justify-center">
-                                            <ArchiveIcon size={20} className="text-blue-500" />
+                                        <View className="h-10 w-10 rounded-full bg-primary/10 items-center justify-center">
+                                            <ArchiveIcon size={20} className="text-primary" />
                                         </View>
                                         <View>
                                             <Text className="font-medium text-foreground">Transaction History</Text>
@@ -291,8 +291,8 @@ export default function SettingsScreen() {
                                 testID="settings-notifications-button"
                             >
                                 <View className="flex-row items-center gap-3">
-                                    <View className="h-10 w-10 rounded-full bg-blue-500/10 items-center justify-center">
-                                        <BellIcon size={20} className="text-blue-500" />
+                                    <View className="h-10 w-10 rounded-full bg-primary/10 items-center justify-center">
+                                        <BellIcon size={20} className="text-primary" />
                                     </View>
                                     <View>
                                         <Text className="font-medium text-foreground">Notifications</Text>
@@ -410,9 +410,9 @@ export default function SettingsScreen() {
                         <Card>
                             <View className="flex-row items-center justify-between p-4">
                                 <View className="flex-row items-center gap-3">
-                                    <View className="h-10 w-10 rounded-full bg-blue-500/10 items-center justify-center">
+                                    <View className="h-10 w-10 rounded-full bg-primary/10 items-center justify-center">
                                         {pushNotificationsEnabled ? (
-                                            <BellRingIcon size={20} className="text-blue-500" />
+                                            <BellRingIcon size={20} className="text-primary" />
                                         ) : (
                                             <BellOffIcon size={20} className="text-muted-foreground" />
                                         )}
@@ -427,7 +427,7 @@ export default function SettingsScreen() {
                                 <Switch
                                     value={pushNotificationsEnabled}
                                     onValueChange={setPushNotificationsEnabled}
-                                    trackColor={{ false: '#767577', true: '#3b82f6' }}
+                                    trackColor={{ false: '#767577', true: '#FA4616' }}
                                     thumbColor={pushNotificationsEnabled ? '#ffffff' : '#f4f3f4'}
                                     testID="notifications-push-toggle"
                                 />
@@ -512,9 +512,9 @@ export default function SettingsScreen() {
                         <Card>
                             <View className="flex-row items-center justify-between p-4">
                                 <View className="flex-row items-center gap-3">
-                                    <View className="h-10 w-10 rounded-full bg-purple-500/10 items-center justify-center">
+                                    <View className="h-10 w-10 rounded-full bg-muted items-center justify-center">
                                         {analyticsEnabled ? (
-                                            <EyeIcon size={20} className="text-purple-500" />
+                                            <EyeIcon size={20} className="text-muted-foreground" />
                                         ) : (
                                             <EyeOffIcon size={20} className="text-muted-foreground" />
                                         )}
@@ -529,7 +529,7 @@ export default function SettingsScreen() {
                                 <Switch
                                     value={analyticsEnabled}
                                     onValueChange={setAnalyticsEnabled}
-                                    trackColor={{ false: '#767577', true: '#8B5CF6' }}
+                                    trackColor={{ false: '#767577', true: '#FA4616' }}
                                     thumbColor={analyticsEnabled ? '#ffffff' : '#f4f3f4'}
                                     testID="privacy-analytics-toggle"
                                 />
@@ -547,7 +547,7 @@ export default function SettingsScreen() {
                                 <Switch
                                     value={crashReportsEnabled}
                                     onValueChange={setCrashReportsEnabled}
-                                    trackColor={{ false: '#767577', true: '#8B5CF6' }}
+                                    trackColor={{ false: '#767577', true: '#FA4616' }}
                                     thumbColor={crashReportsEnabled ? '#ffffff' : '#f4f3f4'}
                                 />
                             </View>
