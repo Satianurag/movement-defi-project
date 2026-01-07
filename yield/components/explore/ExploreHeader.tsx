@@ -6,6 +6,7 @@ import { useWallet } from '@/lib/useWallet';
 import { router } from 'expo-router';
 import { UserIcon, CompassIcon, WifiIcon, WifiOffIcon } from 'lucide-react-native';
 import { HIT_SLOP } from '@/lib/accessibility';
+import { NetworkStatus } from '@/components/NetworkStatus';
 
 export function ExploreHeader() {
     const insets = useSafeAreaInsets();
@@ -36,6 +37,7 @@ export function ExploreHeader() {
 
                 {/* Right Side - Connection + Profile */}
                 <View className="flex-row items-center gap-3">
+                    <NetworkStatus />
                     {/* Connection Status */}
                     {isAuthenticated ? (
                         <Badge variant="success" className="bg-success/10 border-success/20">

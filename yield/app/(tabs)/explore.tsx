@@ -11,6 +11,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Minimal Components
 import { ExploreHeader } from '@/components/explore/ExploreHeader';
 import { PoolsList } from '@/components/explore/PoolsList';
+import { DiscoveryCarousel } from '@/components/explore/DiscoveryCarousel';
+import { MarketPulse } from '@/components/explore/MarketPulse';
 
 export default function ExploreScreen() {
     const { pools, isLoading, refetch } = usePoolsData();
@@ -70,37 +72,18 @@ export default function ExploreScreen() {
                     />
                 }
             >
-                {/* Compact Stats Bar - inline, with skeleton loading */}
-                <View className="flex-row justify-around py-4 px-4 border-b border-border/30">
-                    <View className="items-center">
-                        <Text className="text-xs text-muted-foreground font-medium">TVL</Text>
-                        {isLoading ? (
-                            <Skeleton className="h-6 w-16 mt-1" />
-                        ) : (
-                            <Text className="text-lg font-bold text-foreground">
-                                {formatTotalTVL(totalTVL)}
-                            </Text>
-                        )}
-                    </View>
-                    <View className="h-8 w-px bg-border/50" />
-                    <View className="items-center">
-                        <Text className="text-xs text-muted-foreground font-medium">Top APY</Text>
-                        {isLoading ? (
-                            <Skeleton className="h-6 w-12 mt-1" />
-                        ) : (
-                            <Text className="text-lg font-bold text-primary">{topAPY}</Text>
-                        )}
-                    </View>
-                    <View className="h-8 w-px bg-border/50" />
-                    <View className="items-center">
-                        <Text className="text-xs text-muted-foreground font-medium">Pools</Text>
-                        {isLoading ? (
-                            <Skeleton className="h-6 w-8 mt-1" />
-                        ) : (
-                            <Text className="text-lg font-bold text-foreground">{pools.length}</Text>
-                        )}
-                    </View>
-                </View>
+                {/* Discovery Carousel */}
+                <DiscoveryCarousel
+                    pools={pools}
+                    onPoolPress={handlePoolPress}
+                    isLoading={isLoading}
+                />
+
+                {/* Market Pulse with Sparklines */}
+                <MarketPulse
+                    totalTVL={totalTVL}
+                    isLoading={isLoading}
+                />
 
                 {/* Main Pool List */}
                 <PoolsList

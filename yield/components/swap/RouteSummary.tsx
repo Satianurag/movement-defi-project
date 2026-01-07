@@ -46,28 +46,34 @@ export function RouteSummary({ route, priceImpact, minReceived, tokenOut, isLoad
             {/* Route Visualization */}
             <Card className="p-4 bg-card border-border">
                 <View className="flex-row items-center justify-between">
-                    {/* Step 1 */}
-                    <View className="flex-1 items-center">
-                        <View className="w-8 h-8 rounded-full bg-muted items-center justify-center mb-1">
-                            <Text className="font-bold text-xs">{route[0].tokenIn}</Text>
+                    {/* Step 1: Start Node */}
+                    <View className="items-center z-10">
+                        <View className="w-10 h-10 rounded-full bg-primary/10 border-2 border-primary items-center justify-center mb-1">
+                            <Text className="font-bold text-xs text-primary">{route[0].tokenIn}</Text>
                         </View>
+                        <Text className="text-[10px] text-muted-foreground font-medium">100%</Text>
                     </View>
 
                     {/* Protocol Line */}
-                    <View className="flex-[2] items-center px-2">
-                        <View className="h-[2px] w-full bg-border relative top-3" />
-                        <View className="bg-background border border-border px-2 py-0.5 rounded-full z-10">
-                            <Text className="text-[10px] font-medium text-muted-foreground">
+                    <View className="flex-1 items-center px-1 -mx-3 relative">
+                        {/* Dashed Line */}
+                        <View className="absolute top-5 left-0 right-0 h-[2px] border-b-2 border-dashed border-primary/30" />
+
+                        {/* Protocol Pill */}
+                        <View className="bg-muted border border-border px-2 py-1 rounded-lg z-10 shadow-sm">
+                            <Text className="text-[10px] font-bold text-foreground">
                                 {route[0].protocol}
                             </Text>
                         </View>
+                        <Text className="text-[9px] text-muted-foreground mt-1">V2 Pool</Text>
                     </View>
 
-                    {/* Step 2 */}
-                    <View className="flex-1 items-center">
-                        <View className="w-8 h-8 rounded-full bg-muted items-center justify-center mb-1">
-                            <Text className="font-bold text-xs">{route[0].tokenOut}</Text>
+                    {/* Step 2: End Node */}
+                    <View className="items-center z-10">
+                        <View className="w-10 h-10 rounded-full bg-success/10 border-2 border-success items-center justify-center mb-1">
+                            <Text className="font-bold text-xs text-success">{route[0].tokenOut}</Text>
                         </View>
+                        <Text className="text-[10px] text-muted-foreground font-medium">Output</Text>
                     </View>
                 </View>
 
@@ -76,7 +82,7 @@ export function RouteSummary({ route, priceImpact, minReceived, tokenOut, isLoad
                         <InfoIcon size={12} className="text-muted-foreground" />
                         <Text className="text-xs text-muted-foreground">Min. Received</Text>
                     </View>
-                    <Text className="text-xs font-mono font-medium text-foreground">
+                    <Text className="text-xs font-mono font-medium text-foreground bg-muted px-2 py-0.5 rounded">
                         {minReceived} {tokenOut}
                     </Text>
                 </View>

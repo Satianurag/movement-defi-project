@@ -85,6 +85,10 @@ module.exports = {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
       },
+      boxShadow: {
+        'glow-primary': '0 0 10px -2px hsl(var(--primary-glow) / 0.5)',
+        'glow-success': '0 0 10px -2px hsl(var(--success-glow) / 0.5)',
+      },
     },
   },
   future: {

@@ -64,7 +64,10 @@ function PoolCardSkeleton() {
     );
 }
 
-export function PoolCard({ pool, onPress, loading }: PoolCardProps) {
+import React from 'react';
+import { AnimatedNumber } from '@/components/ui/animated-number';
+
+function PoolCardComponent({ pool, onPress, loading }: PoolCardProps) {
     if (loading) {
         return <PoolCardSkeleton />;
     }
@@ -84,7 +87,7 @@ export function PoolCard({ pool, onPress, loading }: PoolCardProps) {
                     'flex-row items-center justify-between p-4',
                     'active:bg-muted/50',
                     Platform.select({
-                        web: 'hover:bg-muted/20 transition-colors cursor-pointer',
+                        web: 'hover:bg-muted/20 hover:scale-[1.01] hover:shadow-sm transition-all duration-300 cursor-pointer',
                     })
                 )}
                 accessibilityRole="button"
@@ -95,9 +98,15 @@ export function PoolCard({ pool, onPress, loading }: PoolCardProps) {
                     <Text className="text-base font-semibold text-foreground" numberOfLines={1}>
                         {pool.name}
                     </Text>
-                    <Text className="text-xs text-muted-foreground mt-0.5" numberOfLines={1}>
-                        {pool.category} · {formatTVL(pool.tvl)}
-                    </Text>
+                    <View className="flex-row items-center gap-1 mt-0.5">
+                        <Text className="text-xs text-muted-foreground">{pool.category}</Text>
+                        <Text className="text-xs text-muted-foreground">·</Text>
+                        <AnimatedNumber
+                            value={pool.tvl}
+                            formatter={formatTVL}
+                            className="text-xs text-muted-foreground"
+                        />
+                    </View>
                 </View>
 
                 {/* Right: APY & Change */}
@@ -107,9 +116,9 @@ export function PoolCard({ pool, onPress, loading }: PoolCardProps) {
                     </Text>
                     <View className="flex-row items-center gap-1 mt-0.5">
                         {isPositive ? (
-                            <TrendingUpIcon size={10} className="text-success" />
+                            <TrendingUpIcon size={12} className="text-success" />
                         ) : (
-                            <TrendingDownIcon size={10} className="text-destructive" />
+                            <TrendingDownIcon size={12} className="text-destructive" />
                         )}
                         <Text className={cn('text-xs font-medium', isPositive ? 'text-success' : 'text-destructive')}>
                             {isPositive ? '+' : '-'}{changeValue}
@@ -123,6 +132,17 @@ export function PoolCard({ pool, onPress, loading }: PoolCardProps) {
         </Card>
     );
 }
+
+// Memoize the component to prevent unnecessary re-renders
+export const PoolCard = React.memo(PoolCardComponent, (prev, next) => {
+    return (
+        prev.pool.name === next.pool.name &&
+        prev.pool.tvl === next.pool.tvl &&
+        prev.pool.apy === next.pool.apy &&
+        prev.pool.change_7d === next.pool.change_7d &&
+        prev.loading === next.loading
+    );
+});
 
 export { PoolCardSkeleton };
 

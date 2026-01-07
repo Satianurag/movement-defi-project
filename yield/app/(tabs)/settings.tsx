@@ -107,14 +107,61 @@ export default function SettingsScreen() {
             <Stack.Screen options={{ title: 'Settings', headerShown: true }} />
             <ScrollView className="flex-1 bg-background">
                 <View className="p-6 gap-6">
-                    {/* Header */}
+                    {/* Enhanced Header with Context */}
                     <View className="items-center gap-3">
-                        <SettingsIcon size={48} className="text-primary" strokeWidth={1.5} />
+                        <View className="h-16 w-16 rounded-2xl bg-primary/10 items-center justify-center">
+                            <SettingsIcon size={32} className="text-primary" strokeWidth={1.5} />
+                        </View>
                         <Text className="text-2xl font-bold text-foreground">Settings</Text>
                         <Text className="text-muted-foreground text-center">
-                            Customize your app experience
+                            {isAuthenticated
+                                ? `Signed in as ${(user as any)?.email || 'User'}`
+                                : 'Customize your app experience'}
                         </Text>
                     </View>
+
+                    {/* Security Score Card - Only show when authenticated */}
+                    {isAuthenticated && (
+                        <Card className="bg-gradient-to-r from-primary/5 to-transparent border-primary/20">
+                            <CardContent className="p-4">
+                                <View className="flex-row items-center justify-between">
+                                    <View className="flex-row items-center gap-3">
+                                        <View className="h-12 w-12 rounded-full bg-primary/10 items-center justify-center">
+                                            <ShieldCheckIcon size={24} className="text-primary" />
+                                        </View>
+                                        <View>
+                                            <Text className="font-semibold text-foreground">Security Score</Text>
+                                            <Text className="text-xs text-muted-foreground">
+                                                {hasMFA && hasRecovery ? 'Excellent' : hasMFA || hasRecovery ? 'Good' : 'Needs Improvement'}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                    <View className="items-end">
+                                        <Text className="text-2xl font-bold text-primary">
+                                            {hasMFA && hasRecovery ? '100%' : hasMFA || hasRecovery ? '50%' : '25%'}
+                                        </Text>
+                                        <View className="flex-row gap-1 mt-1">
+                                            <View className={`h-2 w-4 rounded-full ${hasMFA ? 'bg-success' : 'bg-muted'}`} />
+                                            <View className={`h-2 w-4 rounded-full ${hasRecovery ? 'bg-success' : 'bg-muted'}`} />
+                                            <View className="h-2 w-4 rounded-full bg-success" />
+                                            <View className="h-2 w-4 rounded-full bg-success" />
+                                        </View>
+                                    </View>
+                                </View>
+                                {(!hasMFA || !hasRecovery) && (
+                                    <View className="mt-3 p-2 rounded-lg bg-warning/10 border border-warning/20">
+                                        <Text className="text-xs text-warning">
+                                            {!hasMFA && !hasRecovery
+                                                ? '⚠️ Enable MFA and set up recovery for maximum security'
+                                                : !hasMFA
+                                                    ? '⚠️ Enable MFA for extra protection'
+                                                    : '⚠️ Set up wallet recovery'}
+                                        </Text>
+                                    </View>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
 
                     {/* Appearance Section */}
                     <View className="gap-3">
@@ -124,11 +171,11 @@ export default function SettingsScreen() {
                         <Card>
                             <View className="flex-row items-center justify-between p-4">
                                 <View className="flex-row items-center gap-3">
-                                    <View className="h-10 w-10 rounded-full bg-slate-500/10 items-center justify-center">
+                                    <View className="h-10 w-10 rounded-full bg-muted items-center justify-center">
                                         {colorScheme === 'dark' ? (
-                                            <MoonIcon size={20} className="text-slate-500" />
+                                            <MoonIcon size={20} className="text-foreground" />
                                         ) : (
-                                            <SunIcon size={20} className="text-slate-500" />
+                                            <SunIcon size={20} className="text-warning" />
                                         )}
                                     </View>
                                     <View>

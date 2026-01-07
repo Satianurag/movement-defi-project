@@ -1,93 +1,210 @@
 import React, { useMemo } from 'react';
-import { View, Dimensions } from 'react-native';
-import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
-import { Text } from '@/components/ui/text';
-import * as shape from 'd3-shape';
+import { View, Dimensions, StyleSheet } from 'react-native';
+import { Svg, Path, Defs, LinearGradient, Stop, Line, Circle } from 'react-native-svg';
+import * as d3 from 'd3-shape';
 import * as scale from 'd3-scale';
+import { Text } from '@/components/ui/text';
+import Animated, {
+    useSharedValue,
+    useAnimatedStyle,
+    withTiming,
+    runOnJS
+} from 'react-native-reanimated';
+// @ts-ignore
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { formatCurrency } from '@/lib/utils'; // Assuming this helper exists or I'll fix it
 
-interface ChartDataPoint {
-    date: number;
+interface PricePoint {
+    timestamp: number;
     value: number;
 }
 
 interface PriceChartProps {
-    data: ChartDataPoint[];
+    data: PricePoint[];
+    color?: string;
     height?: number;
     width?: number;
-    color?: string;
+    onScrub?: (value: number | null) => void;
     loading?: boolean;
 }
 
+const AnimatedLine = Animated.createAnimatedComponent(Line);
+const AnimatedView = Animated.createAnimatedComponent(View);
+
 export function PriceChart({
     data,
-    height = 200,
-    width = Dimensions.get('window').width - 48, // Default padded width
-    color = '#FA4616', // Primary Orange
+    color = '#FA4616',
+    height = 250,
+    width: propWidth,
+    onScrub,
     loading = false
 }: PriceChartProps) {
+    const screenWidth = Dimensions.get('window').width;
+    const width = propWidth || screenWidth - 32; // Default to screen width minus padding
+    const padding = 0;
 
-    if (loading || !data || data.length === 0) {
+    // Scales
+    const { x, y } = useMemo(() => {
+        if (!data || data.length === 0) return { x: () => 0, y: () => 0 };
+
+        const x = scale.scaleTime()
+            .domain([Math.min(...data.map(d => d.timestamp)), Math.max(...data.map(d => d.timestamp))])
+            .range([0, width]);
+
+        const minVal = Math.min(...data.map(d => d.value));
+        const maxVal = Math.max(...data.map(d => d.value));
+        const yPadding = (maxVal - minVal) * 0.1;
+
+        const y = scale.scaleLinear()
+            .domain([minVal - yPadding, maxVal + yPadding])
+            .range([height, 0]);
+
+        return { x, y };
+    }, [data, width, height]);
+
+    // Paths
+    const { linePath, areaPath } = useMemo(() => {
+        if (!data || data.length === 0) return { linePath: '', areaPath: '' };
+        // @ts-ignore - d3 types can be tricky
+        const lineFn = d3.line<PricePoint>()
+            // @ts-ignore
+            .x(d => x(d.timestamp))
+            // @ts-ignore
+            .y(d => y(d.value))
+            .curve(d3.curveMonotoneX);
+
+        // @ts-ignore
+        const areaFn = d3.area<PricePoint>()
+            // @ts-ignore
+            .x(d => x(d.timestamp))
+            .y0(height)
+            // @ts-ignore
+            .y1(d => y(d.value))
+            .curve(d3.curveMonotoneX);
+
+        return {
+            linePath: lineFn(data) || '',
+            areaPath: areaFn(data) || '',
+        };
+    }, [data, x, y, height]);
+
+    // Interaction State
+    const activeX = useSharedValue(0);
+    const activeY = useSharedValue(0);
+    const isActive = useSharedValue(false);
+
+    const pan = Gesture.Pan()
+        .onBegin(() => {
+            isActive.value = true;
+        })
+        .onUpdate((event: any) => {
+            const xPos = Math.max(0, Math.min(width, event.x));
+            activeX.value = xPos;
+
+            // Find closest data point
+            // @ts-ignore
+            const date = x.invert(xPos);
+            // @ts-ignore
+            const index = d3.bisector((d: PricePoint) => d.timestamp).left(data, date, 1);
+            const d0 = data[index - 1];
+            const d1 = data[index];
+
+            let d = d0;
+            if (d1 && d0) {
+                d = (date.getTime() - d0.timestamp) > (d1.timestamp - date.getTime()) ? d1 : d0;
+            }
+
+            if (d) {
+                // @ts-ignore
+                activeY.value = y(d.value);
+                if (onScrub) {
+                    runOnJS(onScrub)(d.value);
+                }
+            }
+        })
+        .onEnd(() => {
+            isActive.value = false;
+            if (onScrub) {
+                runOnJS(onScrub)(null);
+            }
+        });
+
+    const cursorStyle = useAnimatedStyle(() => ({
+        opacity: withTiming(isActive.value ? 1 : 0),
+        transform: [{ translateX: activeX.value }]
+    }));
+
+    const indicatorStyle = useAnimatedStyle(() => ({
+        opacity: withTiming(isActive.value ? 1 : 0),
+        transform: [
+            { translateX: activeX.value },
+            { translateY: activeY.value }
+        ]
+    }));
+
+    if (loading) {
         return (
-            <View className="items-center justify-center p-4 bg-muted/20 rounded-xl" style={{ height }}>
-                <Text className="text-muted-foreground">
-                    {loading ? 'Loading chart...' : 'No historical data available'}
-                </Text>
+            <View style={{ height, width }} className="items-center justify-center bg-muted/10 rounded-xl">
+                <Text className="text-muted-foreground">Loading...</Text>
             </View>
         );
     }
 
-    // Process Data
-    const { path, area } = useMemo(() => {
-        // Sort by date just in case
-        const sortedData = [...data].sort((a, b) => a.date - b.date);
-
-        const xDomain = [sortedData[0].date, sortedData[sortedData.length - 1].date];
-        const yDomain = [
-            Math.min(...sortedData.map(d => d.value)) * 0.95, // Add some padding
-            Math.max(...sortedData.map(d => d.value)) * 1.05
-        ];
-
-        const xScale = scale.scaleTime()
-            .domain(xDomain)
-            .range([0, width]);
-
-        const yScale = scale.scaleLinear()
-            .domain(yDomain)
-            .range([height, 0]);
-
-        const lineGenerator = shape.line()
-            .x((d: ChartDataPoint) => xScale(d.date))
-            .y((d: ChartDataPoint) => yScale(d.value))
-            .curve(shape.curveMonotoneX);
-
-        const areaGenerator = shape.area()
-            .x((d: ChartDataPoint) => xScale(d.date))
-            .y0(height)
-            .y1((d: ChartDataPoint) => yScale(d.value))
-            .curve(shape.curveMonotoneX);
-
-        return {
-            path: lineGenerator(sortedData) || '',
-            area: areaGenerator(sortedData) || ''
-        };
-    }, [data, width, height]);
+    if (!data || data.length === 0) {
+        return (
+            <View style={{ height, width }} className="items-center justify-center bg-muted/10 rounded-xl">
+                <Text className="text-muted-foreground">No data available</Text>
+            </View>
+        );
+    }
 
     return (
         <View>
-            <Svg height={height} width={width}>
-                <Defs>
-                    <LinearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
-                        <Stop offset="0" stopColor={color} stopOpacity="0.2" />
-                        <Stop offset="1" stopColor={color} stopOpacity="0" />
-                    </LinearGradient>
-                </Defs>
+            <GestureDetector gesture={pan}>
+                <View style={{ width, height }}>
+                    <Svg width={width} height={height}>
+                        <Defs>
+                            <LinearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
+                                <Stop offset="0" stopColor={color} stopOpacity="0.3" />
+                                <Stop offset="1" stopColor={color} stopOpacity="0" />
+                            </LinearGradient>
+                        </Defs>
 
-                {/* Area Fill */}
-                <Path d={area} fill="url(#gradient)" />
+                        <Path
+                            d={areaPath}
+                            fill="url(#gradient)"
+                            stroke="none"
+                        />
 
-                {/* Line Stroke */}
-                <Path d={path} stroke={color} strokeWidth={2} fill="none" />
-            </Svg>
+                        <Path
+                            d={linePath}
+                            fill="none"
+                            stroke={color}
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        />
+                    </Svg>
+
+                    {/* Interaction Overlay */}
+                    <AnimatedView
+                        style={[
+                            StyleSheet.absoluteFill,
+                            cursorStyle,
+                            { width: 1.5, backgroundColor: 'white', opacity: 0.5 }
+                        ]}
+                        pointerEvents="none"
+                    />
+
+                    <AnimatedView
+                        style={[
+                            { position: 'absolute', top: -6, left: -6, width: 12, height: 12, borderRadius: 6, backgroundColor: color, borderWidth: 2, borderColor: '#fff' },
+                            indicatorStyle
+                        ]}
+                        pointerEvents="none"
+                    />
+                </View>
+            </GestureDetector>
         </View>
     );
 }

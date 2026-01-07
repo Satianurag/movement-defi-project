@@ -138,7 +138,12 @@ export default function TabLayout() {
                 options={{
                     title: 'Settings',
                     tabBarIcon: ({ color, focused }) => (
-                        <TabIcon Icon={SettingsIcon} color={color} focused={focused} />
+                        <TabIcon
+                            Icon={SettingsIcon}
+                            color={color}
+                            focused={focused}
+                            badgeCount={1} // Example badge for security alert
+                        />
                     ),
                 }}
                 listeners={{

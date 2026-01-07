@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Text } from '@/components/ui/text';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -146,11 +147,38 @@ export default function ProfileScreen() {
                                     </View>
                                 </View>
 
-                                {/* Balance Display (placeholder) */}
+                                {/* Balance Display */}
                                 <View className="mt-4 p-3 rounded-xl bg-muted/50 border border-border/50">
-                                    <Text className="text-xs text-muted-foreground mb-1">Total Balance</Text>
-                                    <Text className="text-2xl font-bold text-foreground">$0.00</Text>
-                                    <Text className="text-xs text-muted-foreground">Connect to Movement Network</Text>
+                                    <View className="flex-row justify-between items-start">
+                                        <View>
+                                            <Text className="text-xs text-muted-foreground mb-1">Total Balance</Text>
+                                            <Text className="text-2xl font-bold text-foreground">$0.00</Text>
+                                        </View>
+                                        <Badge variant="secondary" className="bg-primary/10">
+                                            <Text className="text-xs font-bold text-primary">Level 1</Text>
+                                        </Badge>
+                                    </View>
+
+                                    {/* Quick Stats Row */}
+                                    <View className="flex-row gap-4 mt-3 pt-3 border-t border-border/10">
+                                        <View>
+                                            <Text className="text-[10px] text-muted-foreground mb-0.5">Transactions</Text>
+                                            <View className="flex-row items-center gap-1">
+                                                <Text className="font-bold text-sm">24</Text>
+                                                <View className="bg-success/20 px-1 py-0.5 rounded text-[8px]">
+                                                    <Text className="text-[8px] text-success font-bold">+2</Text>
+                                                </View>
+                                            </View>
+                                        </View>
+                                        <View>
+                                            <Text className="text-[10px] text-muted-foreground mb-0.5">Points</Text>
+                                            <Text className="font-bold text-sm">1,250</Text>
+                                        </View>
+                                        <View className="ml-auto items-end">
+                                            <Text className="text-[10px] text-muted-foreground mb-0.5">Last Activity</Text>
+                                            <Text className="text-xs font-medium text-muted-foreground">2m ago</Text>
+                                        </View>
+                                    </View>
                                 </View>
 
                                 {/* Quick Actions */}

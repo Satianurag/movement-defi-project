@@ -85,6 +85,9 @@ function EmptyState() {
     );
 }
 
+import { FlatList } from 'react-native';
+import { useResponsive } from '@/lib/useResponsive';
+
 export function PoolList({
     pools,
     isLoading = false,
@@ -92,6 +95,8 @@ export function PoolList({
     onRetry,
     onPoolPress,
 }: PoolListProps) {
+    const { numColumns } = useResponsive();
+
     if (isLoading) {
         return <LoadingSkeleton />;
     }
@@ -105,17 +110,24 @@ export function PoolList({
     }
 
     return (
-        <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ gap: 16, paddingBottom: 24 }}
-        >
-            {pools.map((pool, index) => (
-                <PoolCard
-                    key={pool.name || index}
-                    pool={pool}
-                    onPress={() => onPoolPress?.(pool)}
-                />
-            ))}
-        </ScrollView>
+        <View className="flex-1">
+            <FlatList
+                key={numColumns} // Force re-render when columns change
+                data={pools}
+                renderItem={({ item }) => (
+                    <View style={{ flex: 1, padding: 8 }}>
+                        <PoolCard
+                            pool={item}
+                            onPress={() => onPoolPress?.(item)}
+                        />
+                    </View>
+                )}
+                keyExtractor={(item, index) => item.slug || item.name || index.toString()}
+                numColumns={numColumns}
+                contentContainerStyle={{ padding: 8 }}
+                columnWrapperStyle={numColumns > 1 ? { justifyContent: 'space-between' } : undefined}
+                showsVerticalScrollIndicator={false}
+            />
+        </View>
     );
 }

@@ -26,6 +26,7 @@ import {
 import { View, ActivityIndicator } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // Prevent auto-hiding splash screen
 SplashScreen.preventAutoHideAsync();
@@ -76,10 +77,10 @@ function NavigationLayout() {
   return (
     <ThemeProvider value={NAV_THEME[colorScheme ?? 'light'] as Theme}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      <Stack>
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen name="sign-in" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack screenOptions={{ animation: 'slide_from_right' }}>
+        <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'fade' }} />
+        <Stack.Screen name="sign-in" options={{ headerShown: false, animation: 'fade' }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'fade' }} />
         <Stack.Screen name="index" options={{ headerShown: false }} />
       </Stack>
       <PortalHost />
@@ -125,7 +126,9 @@ export default function RootLayout() {
         <SmartWalletsProvider>
           <ToastProvider>
             <FavoritesProvider>
-              <NavigationLayout />
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <NavigationLayout />
+              </GestureHandlerRootView>
             </FavoritesProvider>
           </ToastProvider>
         </SmartWalletsProvider>

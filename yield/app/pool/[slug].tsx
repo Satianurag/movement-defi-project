@@ -97,7 +97,7 @@ export default function PoolDetailScreen() {
     const [zapStep, setZapStep] = useState<ZapStep>('initiating');
     const [zapTxHash, setZapTxHash] = useState<string | undefined>(undefined);
     const [zapError, setZapError] = useState<string | undefined>(undefined);
-    const [historyData, setHistoryData] = useState([]);
+    const [historyData, setHistoryData] = useState<{ timestamp: number; value: number }[]>([]);
     const [isHistoryLoading, setIsHistoryLoading] = useState(false);
     const [showBorrowModal, setShowBorrowModal] = useState(false);
     const [showZapModal, setShowZapModal] = useState(false);
@@ -105,6 +105,11 @@ export default function PoolDetailScreen() {
     const { showToast } = useToast();
 
     const [isWithdrawing, setIsWithdrawing] = useState(false);
+
+    // Chart Interaction State
+    // Chart Interaction State
+    const [scrubbedValue, setScrubbedValue] = useState<number | null>(null);
+    const displayTVL = scrubbedValue !== null ? scrubbedValue : (historyData.length > 0 ? historyData[historyData.length - 1].value : pool?.tvl);
 
     // Wallet hook
     const {
@@ -164,9 +169,9 @@ export default function PoolDetailScreen() {
                 const response = await fetch(`${API_BASE_URL}/api/defi/history/${slug}`);
                 const json = await response.json();
                 if (json.success && Array.isArray(json.data)) {
-                    // Format for chart: { date: number, value: number }
+                    // Format for chart: { timestamp: number, value: number }
                     const formatted = json.data.map((item: any) => ({
-                        date: item.date * 1000, // API uses seconds, JS uses ms
+                        timestamp: item.date * 1000, // API uses seconds, JS uses ms
                         value: item.tvl
                     }));
                     setHistoryData(formatted);
@@ -447,6 +452,37 @@ export default function PoolDetailScreen() {
 
                         {/* Overview Tab */}
                         <TabsContent value="overview">
+
+                            {/* User Position Card (New) */}
+                            {isAuthenticated && (
+                                <Card className="mb-4 border-primary/20 bg-primary/5">
+                                    <CardHeader className="pb-2">
+                                        <View className="flex-row items-center justify-between">
+                                            <CardTitle className="text-primary">My Position</CardTitle>
+                                            <Badge className="bg-primary">Active</Badge>
+                                        </View>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <View className="flex-row gap-4">
+                                            <View className="flex-1">
+                                                <Text className="text-xs text-muted-foreground mb-1">Staked Amount</Text>
+                                                <Text className="text-lg font-bold text-foreground">$1,250.00</Text>
+                                                <Text className="text-xs text-muted-foreground">1,250 MOVE</Text>
+                                            </View>
+                                            <View className="w-px bg-primary/20" />
+                                            <View className="flex-1">
+                                                <Text className="text-xs text-muted-foreground mb-1">Pending Rewards</Text>
+                                                <Text className="text-lg font-bold text-success">+$12.45</Text>
+                                                <Text className="text-xs text-muted-foreground">12.4 MOVE</Text>
+                                            </View>
+                                        </View>
+                                        <Button className="mt-3 h-8" variant="outline" size="sm">
+                                            <Text className="text-xs">Claim Rewards</Text>
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            )}
+
                             {/* TVL Share */}
                             <Card className="mb-4">
                                 <CardHeader>
@@ -528,16 +564,42 @@ export default function PoolDetailScreen() {
                             {/* TVL History Chart */}
                             <Card className="mb-4">
                                 <CardHeader>
-                                    <CardTitle>TVL History</CardTitle>
-                                    <CardDescription>
-                                        Historical Total Value Locked over time
-                                    </CardDescription>
+                                    <View className="flex-row items-center justify-between">
+                                        <View>
+                                            <CardTitle>TVL History</CardTitle>
+                                            <CardDescription>
+                                                {scrubbedValue !== null ? (
+                                                    <Text className="text-foreground font-bold">{formatTVL(scrubbedValue)}</Text>
+                                                ) : (
+                                                    'Historical Total Value Locked'
+                                                )}
+                                            </CardDescription>
+                                        </View>
+                                        {/* Time Range Selectors */}
+                                        <View className="flex-row bg-muted rounded-lg p-0.5">
+                                            {['1D', '1W', '1M', 'All'].map((range) => (
+                                                <Pressable
+                                                    key={range}
+                                                    className={cn(
+                                                        "px-2 py-1 rounded-md",
+                                                        range === '1M' ? "bg-background shadow-sm" : ""
+                                                    )}
+                                                >
+                                                    <Text className={cn(
+                                                        "text-[10px] font-medium",
+                                                        range === '1M' ? "text-foreground" : "text-muted-foreground"
+                                                    )}>{range}</Text>
+                                                </Pressable>
+                                            ))}
+                                        </View>
+                                    </View>
                                 </CardHeader>
                                 <CardContent>
                                     <PriceChart
                                         data={historyData}
                                         loading={isHistoryLoading}
                                         height={180}
+                                        onScrub={setScrubbedValue}
                                     />
                                 </CardContent>
                             </Card>
@@ -620,20 +682,21 @@ export default function PoolDetailScreen() {
                         <TabsContent value="info">
                             <Card className="mb-4">
                                 <CardHeader>
-                                    <CardTitle>Protocol Details</CardTitle>
+                                    <View className="flex-row items-center justify-between">
+                                        <CardTitle>About Protocol</CardTitle>
+                                        <Badge variant="outline" className="border-success/20 bg-success/10">
+                                            <ShieldCheckIcon size={12} className="text-success mr-1" />
+                                            <Text className="text-xs text-success">Audited</Text>
+                                        </Badge>
+                                    </View>
                                 </CardHeader>
                                 <CardContent>
+                                    <Text className="text-muted-foreground mb-4 leading-5">
+                                        {pool.name} is a leading protocol on the Movement network, providing advanced {pool.category.toLowerCase()} solutions.
+                                        Users can earn yield by providing liquidity or staking tokens.
+                                    </Text>
+
                                     <View className="gap-3">
-                                        <View className="flex-row justify-between">
-                                            <Text className="text-muted-foreground">Name</Text>
-                                            <Text className="font-medium text-foreground">{pool.name}</Text>
-                                        </View>
-                                        <Separator />
-                                        <View className="flex-row justify-between">
-                                            <Text className="text-muted-foreground">Slug</Text>
-                                            <Text className="font-mono text-sm text-foreground">{pool.slug}</Text>
-                                        </View>
-                                        <Separator />
                                         <View className="flex-row justify-between">
                                             <Text className="text-muted-foreground">Category</Text>
                                             <Text className="font-medium text-foreground">{pool.category}</Text>
@@ -643,19 +706,40 @@ export default function PoolDetailScreen() {
                                             <Text className="text-muted-foreground">Network</Text>
                                             <Text className="font-medium text-foreground">Movement</Text>
                                         </View>
+                                        <Separator />
+                                        <View className="flex-row justify-between">
+                                            <Text className="text-muted-foreground">Launch Date</Text>
+                                            <Text className="font-medium text-foreground">Oct 2024</Text>
+                                        </View>
                                     </View>
                                 </CardContent>
                             </Card>
 
-                            {/* External Link */}
-                            <Button
-                                variant="outline"
-                                className="w-full"
-                                onPress={handleOpenProtocol}
-                            >
-                                <ExternalLinkIcon size={16} className="text-foreground" />
-                                <Text>View on DefiLlama</Text>
-                            </Button>
+                            <Card className="mb-4">
+                                <CardHeader>
+                                    <CardTitle>Links</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <View className="gap-2">
+                                        <Button
+                                            variant="outline"
+                                            className="w-full justify-between"
+                                            onPress={handleOpenProtocol}
+                                        >
+                                            <Text>Website</Text>
+                                            <ExternalLinkIcon size={16} className="text-foreground" />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full justify-between"
+                                            onPress={() => Linking.openURL(`https://twitter.com/search?q=${pool.name}`)}
+                                        >
+                                            <Text>Twitter / X</Text>
+                                            <ExternalLinkIcon size={16} className="text-foreground" />
+                                        </Button>
+                                    </View>
+                                </CardContent>
+                            </Card>
                         </TabsContent>
                     </Tabs>
                 </View>

@@ -13,6 +13,7 @@ import Animated, {
     FadeInUp,
     runOnJS,
 } from 'react-native-reanimated';
+// @ts-ignore
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text } from './ui/text';
@@ -91,7 +92,7 @@ export function DEXOnboarding({ onComplete }: DEXOnboardingProps) {
         if (Platform.OS !== 'web') {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
-        
+
         if (currentIndex < SLIDES.length - 1) {
             setCurrentIndex(prev => prev + 1);
             scrollX.value = withSpring((currentIndex + 1) * width, {
@@ -107,7 +108,7 @@ export function DEXOnboarding({ onComplete }: DEXOnboardingProps) {
         if (Platform.OS !== 'web') {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
-        
+
         if (currentIndex > 0) {
             setCurrentIndex(prev => prev - 1);
             scrollX.value = withSpring((currentIndex - 1) * width, {
@@ -126,10 +127,10 @@ export function DEXOnboarding({ onComplete }: DEXOnboardingProps) {
 
     // Swipe gesture handler
     const panGesture = Gesture.Pan()
-        .onUpdate((event) => {
+        .onUpdate((event: any) => {
             translationX.value = event.translationX;
         })
-        .onEnd((event) => {
+        .onEnd((event: any) => {
             const shouldMoveNext = event.translationX < -50 && currentIndex < SLIDES.length - 1;
             const shouldMovePrev = event.translationX > 50 && currentIndex > 0;
 
@@ -175,7 +176,7 @@ export function DEXOnboarding({ onComplete }: DEXOnboardingProps) {
             [0, 1],
             [1, 1.1]
         );
-        return { 
+        return {
             opacity,
             transform: [{ scale }],
         };
@@ -199,11 +200,11 @@ export function DEXOnboarding({ onComplete }: DEXOnboardingProps) {
 
                 {/* Skip Button */}
                 {currentIndex < SLIDES.length - 1 && (
-                    <Animated.View 
+                    <Animated.View
                         entering={FadeInDown.delay(300)}
                         className="absolute top-12 right-6 z-10"
                     >
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             onPress={handleSkip}
                             className="px-4 py-2 bg-muted/10 rounded-full border border-muted/20"
                         >
@@ -218,14 +219,14 @@ export function DEXOnboarding({ onComplete }: DEXOnboardingProps) {
                 >
                     {SLIDES.map((slide, index) => {
                         const isActive = index === currentIndex;
-                        
+
                         return (
                             <View key={index} style={{ width }} className="flex-1 justify-center px-8 py-12">
                                 {/* Icon Container with Glow */}
                                 <View className="items-center mb-16">
                                     <View className="relative">
                                         {/* Animated Glow Effect */}
-                                        <Animated.View 
+                                        <Animated.View
                                             style={[
                                                 glowAnimatedStyle,
                                                 {
@@ -239,9 +240,9 @@ export function DEXOnboarding({ onComplete }: DEXOnboardingProps) {
                                                 }
                                             ]}
                                         />
-                                        
+
                                         {/* Secondary Glow Ring */}
-                                        <View 
+                                        <View
                                             style={{
                                                 position: 'absolute',
                                                 top: -45,
@@ -253,9 +254,9 @@ export function DEXOnboarding({ onComplete }: DEXOnboardingProps) {
                                                 opacity: 0.1,
                                             }}
                                         />
-                                        
+
                                         {/* Icon Circle with Animation */}
-                                        <Animated.View 
+                                        <Animated.View
                                             style={[iconAnimatedStyle]}
                                             className="h-36 w-36 rounded-full bg-primary/10 items-center justify-center border-2 border-primary/30"
                                         >
@@ -279,7 +280,7 @@ export function DEXOnboarding({ onComplete }: DEXOnboardingProps) {
                                 <View className="items-center">
                                     {/* Branding (First Slide Only) */}
                                     {slide.showBranding && (
-                                        <Animated.View 
+                                        <Animated.View
                                             entering={FadeInUp.delay(200)}
                                             className="mb-6"
                                         >
@@ -314,31 +315,33 @@ export function DEXOnboarding({ onComplete }: DEXOnboardingProps) {
                     <View className="mb-8">
                         {/* Overall Progress Bar */}
                         <View className="h-1 bg-muted/20 rounded-full overflow-hidden mb-4">
-                            <Animated.View 
+                            <Animated.View
                                 style={progressAnimatedStyle}
                                 className="h-full bg-primary rounded-full"
                             />
                         </View>
-                        
+
                         {/* Individual Step Dots */}
                         <View className="flex-row justify-center items-center gap-2 mb-3">
                             {SLIDES.map((_, index) => {
                                 const isActive = index === currentIndex;
                                 const isPast = index < currentIndex;
-                                
+
                                 return (
                                     <View
                                         key={index}
-                                        className={`h-2 w-2 rounded-full ${
-                                            isActive ? 'bg-primary scale-125' : 
-                                            isPast ? 'bg-primary/60' : 
-                                            'bg-muted/40'
-                                        }`}
+                                        className={`h-2 w-2 rounded-full ${isActive ? 'bg-primary' :
+                                            isPast ? 'bg-primary/60' :
+                                                'bg-muted/40'
+                                            }`}
+                                        style={{
+                                            transform: [{ scale: isActive ? 1.25 : 1 }]
+                                        }}
                                     />
                                 );
                             })}
                         </View>
-                        
+
                         {/* Step Counter */}
                         <Text className="text-center text-xs text-muted-foreground/80 font-medium">
                             Step {currentIndex + 1} of {SLIDES.length}
@@ -359,7 +362,7 @@ export function DEXOnboarding({ onComplete }: DEXOnboardingProps) {
                                 opacity: 0.5,
                             }}
                         />
-                        
+
                         <Button
                             onPress={handleNext}
                             size="lg"
@@ -381,10 +384,10 @@ export function DEXOnboarding({ onComplete }: DEXOnboardingProps) {
                             </Text>
                         </Animated.View>
                     )}
-                    
+
                     {/* Swipe Hint (First Slide Only) */}
                     {currentIndex === 0 && (
-                        <Animated.View 
+                        <Animated.View
                             entering={FadeInUp.delay(1000)}
                             className="mt-4"
                         >
@@ -395,6 +398,6 @@ export function DEXOnboarding({ onComplete }: DEXOnboardingProps) {
                     )}
                 </View>
             </View>
-        </GestureDetector>
+        </GestureDetector >
     );
 }

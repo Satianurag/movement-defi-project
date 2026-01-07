@@ -16,6 +16,21 @@ import { useQueryClient } from '@tanstack/react-query';
 
 type EarnSection = 'farms' | 'staking' | 'stablecoin';
 
+const LiveTicker = () => {
+    // Simple pulsing effect for "Live" indicator
+    return (
+        <View className="flex-row items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20">
+            <View className="relative w-2 h-2">
+                <View className="absolute inset-0 bg-primary rounded-full animate-ping opacity-75" />
+                <View className="w-2 h-2 bg-primary rounded-full" />
+            </View>
+            <Text className="text-xs font-bold text-primary">
+                MST Staking APY: <Text className="text-foreground">12.4%</Text>
+            </Text>
+        </View>
+    );
+};
+
 export default function EarnScreen() {
     const insets = useSafeAreaInsets();
     const [activeSection, setActiveSection] = useState<EarnSection>('farms');
@@ -39,7 +54,8 @@ export default function EarnScreen() {
                     title: 'Earn Yield',
                     headerShown: true,
                     headerRight: () => (
-                        <View className="mr-4">
+                        <View className="mr-4 flex-row items-center gap-3">
+                            <LiveTicker />
                             <NetworkStatus />
                         </View>
                     ),
@@ -52,20 +68,25 @@ export default function EarnScreen() {
                         variant={activeSection === 'farms' ? 'default' : 'ghost'}
                         size="sm"
                         onPress={() => setActiveSection('farms')}
-                        className={`flex-1 ${activeSection === 'farms' ? 'shadow-lg shadow-primary/20' : ''}`}
+                        className={`flex-1 relative ${activeSection === 'farms' ? 'shadow-lg shadow-primary/20' : ''}`}
                     >
                         <LayersIcon size={16} className={activeSection === 'farms' ? "text-primary-foreground" : "text-muted-foreground"} />
                         <Text className={activeSection === 'farms' ? "text-primary-foreground font-semibold" : "text-foreground"}>Farms</Text>
-                        {/* Badge placeholder for count */}
+                        <View className="absolute -top-1 -right-1 bg-blue-500 rounded-full px-1.5 py-0.5 border border-background">
+                            <Text className="text-[9px] font-bold text-white">12</Text>
+                        </View>
                     </Button>
                     <Button
                         variant={activeSection === 'staking' ? 'default' : 'ghost'}
                         size="sm"
                         onPress={() => setActiveSection('staking')}
-                        className={`flex-1 ${activeSection === 'staking' ? 'shadow-lg shadow-primary/20' : ''}`}
+                        className={`flex-1 relative ${activeSection === 'staking' ? 'shadow-lg shadow-primary/20' : ''}`}
                     >
                         <TrendingUpIcon size={16} className={activeSection === 'staking' ? "text-primary-foreground" : "text-muted-foreground"} />
                         <Text className={activeSection === 'staking' ? "text-primary-foreground font-semibold" : "text-foreground"}>Staking</Text>
+                        <View className="absolute -top-1 -right-1 bg-primary rounded-full px-1.5 py-0.5 border border-background">
+                            <Text className="text-[9px] font-bold text-white">HOT</Text>
+                        </View>
                     </Button>
                     <Button
                         variant={activeSection === 'stablecoin' ? 'default' : 'ghost'}

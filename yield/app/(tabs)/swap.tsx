@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
+import { View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, Image } from 'react-native';
 import { Stack } from 'expo-router';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
@@ -175,46 +175,54 @@ export default function SwapScreen() {
                             <View className="flex-row justify-between mb-2">
                                 <Text className="text-muted-foreground text-xs font-medium">You Pay</Text>
                                 <View className="flex-row items-center gap-1">
-                                    <WalletIcon size={10} className="text-muted-foreground" />
-                                    <Text className="text-muted-foreground text-xs">{tokenIn.balance}</Text>
-                                    <TouchableOpacity
-                                        onPress={() => setAmountIn(tokenIn.balance || '0')}
-                                        className="ml-1 bg-primary/10 px-2 py-0.5 rounded-full"
-                                        accessibilityLabel="Use maximum balance"
-                                        accessibilityRole="button"
-                                    >
-                                        <Text className="text-primary text-xs font-bold">MAX</Text>
-                                    </TouchableOpacity>
+                                    <View className="flex-row items-center gap-1.5 bg-muted rounded-full pl-2 pr-1 py-0.5 border border-border/50">
+                                        <WalletIcon size={12} className="text-muted-foreground" />
+                                        <Text className="text-muted-foreground text-xs font-medium">{tokenIn.balance}</Text>
+                                        <TouchableOpacity
+                                            onPress={() => setAmountIn(tokenIn.balance || '0')}
+                                            className="bg-primary/10 px-2 py-0.5 rounded-full"
+                                            accessibilityLabel="Use maximum balance"
+                                            accessibilityRole="button"
+                                        >
+                                            <Text className="text-primary text-[10px] font-bold">MAX</Text>
+                                        </TouchableOpacity>
+                                    </View>
                                 </View>
                             </View>
 
                             <View className="flex-row items-center justify-between h-12">
                                 <Input
-                                    className="flex-1 text-3xl font-bold p-0 border-0 bg-transparent h-full text-foreground"
+                                    className="flex-1 text-3xl font-bold p-0 border-0 bg-transparent h-full text-foreground placeholder:text-muted-foreground/50"
                                     placeholder="0"
+                                    placeholderTextColor="#A1A1AA"
                                     keyboardType="numeric"
                                     value={amountIn}
                                     onChangeText={setAmountIn}
                                 />
                                 <TouchableOpacity
                                     onPress={() => setShowTokenSelector('in')}
-                                    className="bg-background flex-row items-center gap-2 px-3 py-1.5 rounded-full border border-border ml-3 shadow-sm"
+                                    className="bg-background flex-row items-center gap-2 px-3 py-1.5 rounded-full border border-border ml-3 shadow-sm active:opacity-80"
                                 >
-                                    <View className="w-5 h-5 rounded-full bg-primary/20 items-center justify-center">
-                                        <Text className="text-[10px] font-bold text-primary">{tokenIn.symbol[0]}</Text>
-                                    </View>
+                                    {tokenIn.logoURI ? (
+                                        <Image source={{ uri: tokenIn.logoURI }} className="w-6 h-6 rounded-full" />
+                                    ) : (
+                                        <View className="w-6 h-6 rounded-full bg-primary/20 items-center justify-center">
+                                            <Text className="text-[10px] font-bold text-primary">{tokenIn.symbol[0]}</Text>
+                                        </View>
+                                    )}
                                     <Text className="font-bold text-base">{tokenIn.symbol}</Text>
                                     <ArrowDownIcon size={14} className="text-muted-foreground" />
                                 </TouchableOpacity>
                             </View>
-                            <Text className="text-xs text-muted-foreground mt-1">$ {quote?.usdValue || '0.00'}</Text>
+                            <Text className="text-xs text-muted-foreground mt-1 font-medium">≈ ${quote?.usdValue || '0.00'} USD</Text>
                         </View>
 
                         {/* Flipper */}
-                        <View className="items-center -my-7 z-10">
+                        <View className="items-center -my-7 z-10 pointer-events-box-none">
                             <TouchableOpacity
                                 onPress={handleFlip}
-                                className="bg-background p-2 rounded-xl border-4 border-card shadow-sm"
+                                className="bg-card p-2.5 rounded-xl border-4 border-background shadow-lg shadow-black/5"
+                                activeOpacity={0.8}
                             >
                                 <ArrowDownIcon size={20} className="text-primary" />
                             </TouchableOpacity>
@@ -228,12 +236,12 @@ export default function SwapScreen() {
 
                             <View className="flex-row items-center justify-between h-12">
                                 {loading && !quote ? (
-                                    <View className="flex-1 h-8 justify-center">
+                                    <View className="flex-1 h-8 justify-start">
                                         <ActivityIndicator size="small" color="#888" />
                                     </View>
                                 ) : (
                                     <Text
-                                        className={`flex-1 text-3xl font-bold ${!quote ? 'text-muted-foreground' : 'text-foreground'}`}
+                                        className={`flex-1 text-3xl font-bold ${!quote ? 'text-muted-foreground/30' : 'text-foreground'}`}
                                         numberOfLines={1}
                                         adjustsFontSizeToFit
                                     >
@@ -243,11 +251,15 @@ export default function SwapScreen() {
 
                                 <TouchableOpacity
                                     onPress={() => setShowTokenSelector('out')}
-                                    className="bg-background flex-row items-center gap-2 px-3 py-1.5 rounded-full border border-border ml-3 shadow-sm"
+                                    className="bg-background flex-row items-center gap-2 px-3 py-1.5 rounded-full border border-border ml-3 shadow-sm active:opacity-80"
                                 >
-                                    <View className="w-5 h-5 rounded-full bg-success/20 items-center justify-center">
-                                        <Text className="text-[10px] font-bold text-success">{tokenOut.symbol[0]}</Text>
-                                    </View>
+                                    {tokenOut.logoURI ? (
+                                        <Image source={{ uri: tokenOut.logoURI }} className="w-6 h-6 rounded-full" />
+                                    ) : (
+                                        <View className="w-6 h-6 rounded-full bg-success/20 items-center justify-center">
+                                            <Text className="text-[10px] font-bold text-success">{tokenOut.symbol[0]}</Text>
+                                        </View>
+                                    )}
                                     <Text className="font-bold text-base">{tokenOut.symbol}</Text>
                                     <ArrowDownIcon size={14} className="text-muted-foreground" />
                                 </TouchableOpacity>

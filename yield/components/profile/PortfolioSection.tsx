@@ -4,6 +4,7 @@ import { Text } from '@/components/ui/text';
 import { Card, CardContent } from '@/components/ui/card';
 import { LayersIcon, WalletIcon, TrendingUpIcon, AlertCircleIcon } from 'lucide-react-native';
 import { usePortfolio, PortfolioPosition } from '@/lib/usePortfolio';
+import { PortfolioAnalytics } from '@/components/portfolio/PortfolioAnalytics';
 
 // Icon mapping based on protocol
 const getPositionIcon = (protocol: string) => {
@@ -86,31 +87,8 @@ export function PortfolioSection() {
                 </Card>
             </View>
 
-            {/* Positions List */}
-            <View className="gap-3">
-                {portfolio.positions.map((pos: PortfolioPosition) => {
-                    const { icon: Icon, color, bg } = getPositionIcon(pos.protocol);
-                    return (
-                        <Card key={pos.id} className="flex-row items-center p-4 gap-4">
-                            <View className={`h-10 w-10 rounded-full items-center justify-center ${bg}`}>
-                                <Icon size={20} className={color} />
-                            </View>
-                            <View className="flex-1">
-                                <Text className="font-semibold text-foreground">{pos.name}</Text>
-                                <Text className="text-xs text-muted-foreground">
-                                    {pos.protocol} • {pos.strategy}
-                                </Text>
-                            </View>
-                            <View className="items-end">
-                                <Text className="font-bold text-foreground">{pos.amount}</Text>
-                                {pos.apy && (
-                                    <Text className="text-xs text-success">{pos.apy} APY</Text>
-                                )}
-                            </View>
-                        </Card>
-                    );
-                })}
-            </View>
+            {/* Analytics & Positions */}
+            <PortfolioAnalytics data={portfolio} />
         </View>
     );
 }
