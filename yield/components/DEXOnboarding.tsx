@@ -6,11 +6,14 @@ import Animated, {
     withSpring,
     withTiming,
     withRepeat,
+    withSequence,
     interpolate,
     Extrapolate,
     FadeInDown,
     FadeInUp,
+    runOnJS,
 } from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text } from './ui/text';
 import { Button } from './ui/button';
