@@ -109,13 +109,20 @@ export default function ProfileScreen() {
             <ScrollView className="flex-1 bg-background">
                 <View className="p-4 gap-4" style={{ paddingBottom: insets.bottom + 80 }}>
 
-                    {/* Wallet Summary Card - Clean Single Card */}
+                    {/* Enhanced Wallet Summary Card */}
                     {isAuthenticated && walletAddress ? (
-                        <Card className="bg-card border-border">
+                        <Card className="bg-card border-border overflow-hidden">
+                            {/* Gradient header accent */}
+                            <View className="h-1 bg-primary" />
                             <CardContent className="p-4">
                                 <View className="flex-row items-center gap-3">
-                                    <View className="h-12 w-12 rounded-full bg-primary/10 items-center justify-center">
-                                        <WalletIcon size={24} className="text-primary" />
+                                    {/* Avatar with status ring */}
+                                    <View className="relative">
+                                        <View className="h-14 w-14 rounded-full bg-primary/10 items-center justify-center border-2 border-primary">
+                                            <WalletIcon size={26} className="text-primary" />
+                                        </View>
+                                        {/* Online status indicator */}
+                                        <View className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-success border-2 border-card" />
                                     </View>
                                     <View className="flex-1">
                                         <Text className="text-sm text-muted-foreground">Your Wallet</Text>
@@ -123,13 +130,27 @@ export default function ProfileScreen() {
                                             {formatAddress(smartWalletAddress || walletAddress)}
                                         </Text>
                                     </View>
-                                    <Pressable onPress={handleCopyAddress} className="p-2">
-                                        {copied ? (
-                                            <CheckIcon size={20} className="text-success" />
-                                        ) : (
-                                            <CopyIcon size={20} className="text-muted-foreground" />
-                                        )}
-                                    </Pressable>
+                                    {/* Copy & QR buttons */}
+                                    <View className="flex-row gap-1">
+                                        <Pressable
+                                            onPress={handleCopyAddress}
+                                            className="h-10 w-10 rounded-lg bg-muted items-center justify-center"
+                                            accessibilityLabel={copied ? "Address copied" : "Copy address"}
+                                        >
+                                            {copied ? (
+                                                <CheckIcon size={18} className="text-success" />
+                                            ) : (
+                                                <CopyIcon size={18} className="text-muted-foreground" />
+                                            )}
+                                        </Pressable>
+                                    </View>
+                                </View>
+
+                                {/* Balance Display (placeholder) */}
+                                <View className="mt-4 p-3 rounded-xl bg-muted/50 border border-border/50">
+                                    <Text className="text-xs text-muted-foreground mb-1">Total Balance</Text>
+                                    <Text className="text-2xl font-bold text-foreground">$0.00</Text>
+                                    <Text className="text-xs text-muted-foreground">Connect to Movement Network</Text>
                                 </View>
 
                                 {/* Quick Actions */}
@@ -139,7 +160,7 @@ export default function ProfileScreen() {
                                         className="flex-1"
                                         onPress={() => setShowFundWallet(true)}
                                     >
-                                        <Text className="font-medium">Fund Wallet</Text>
+                                        <Text className="font-semibold">Fund Wallet</Text>
                                     </Button>
                                     <Button
                                         variant="outline"
@@ -153,16 +174,47 @@ export default function ProfileScreen() {
                             </CardContent>
                         </Card>
                     ) : (
-                        <Card className="p-6 items-center">
-                            <WalletIcon size={48} className="text-muted-foreground mb-3" />
-                            <Text className="text-lg font-semibold text-foreground mb-1">Not Connected</Text>
-                            <Text className="text-muted-foreground text-center mb-4">
-                                Sign in to view your positions
-                            </Text>
-                            <Button className="w-full" onPress={handleSignIn}>
-                                <LogInIcon size={18} className="text-primary-foreground mr-2" />
-                                <Text className="font-semibold">Sign In</Text>
-                            </Button>
+                        /* Enhanced Not Connected State */
+                        <Card className="overflow-hidden">
+                            {/* Gradient header */}
+                            <View className="h-24 bg-gradient-to-br from-primary/20 to-transparent items-center justify-center">
+                                <View className="h-16 w-16 rounded-full bg-muted border-2 border-dashed border-muted-foreground/30 items-center justify-center">
+                                    <WalletIcon size={32} className="text-muted-foreground" />
+                                </View>
+                            </View>
+                            <View className="p-6 items-center">
+                                <Text className="text-xl font-bold text-foreground mb-2">Welcome to Kinetic</Text>
+                                <Text className="text-muted-foreground text-center mb-6">
+                                    Connect your wallet to start earning yield on Movement Network
+                                </Text>
+
+                                {/* Benefits list */}
+                                <View className="w-full gap-3 mb-6">
+                                    <View className="flex-row items-center gap-3">
+                                        <View className="h-8 w-8 rounded-full bg-success/10 items-center justify-center">
+                                            <CheckIcon size={16} className="text-success" />
+                                        </View>
+                                        <Text className="text-sm text-foreground flex-1">Earn up to 45% APY on your crypto</Text>
+                                    </View>
+                                    <View className="flex-row items-center gap-3">
+                                        <View className="h-8 w-8 rounded-full bg-success/10 items-center justify-center">
+                                            <CheckIcon size={16} className="text-success" />
+                                        </View>
+                                        <Text className="text-sm text-foreground flex-1">Secure smart wallet with MFA</Text>
+                                    </View>
+                                    <View className="flex-row items-center gap-3">
+                                        <View className="h-8 w-8 rounded-full bg-success/10 items-center justify-center">
+                                            <CheckIcon size={16} className="text-success" />
+                                        </View>
+                                        <Text className="text-sm text-foreground flex-1">Swap tokens with best rates</Text>
+                                    </View>
+                                </View>
+
+                                <Button className="w-full h-12" onPress={handleSignIn}>
+                                    <LogInIcon size={18} className="text-primary-foreground mr-2" />
+                                    <Text className="font-bold text-lg">Get Started</Text>
+                                </Button>
+                            </View>
                         </Card>
                     )}
 
