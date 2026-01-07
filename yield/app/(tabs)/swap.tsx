@@ -177,8 +177,13 @@ export default function SwapScreen() {
                                 <View className="flex-row items-center gap-1">
                                     <WalletIcon size={10} className="text-muted-foreground" />
                                     <Text className="text-muted-foreground text-xs">{tokenIn.balance}</Text>
-                                    <TouchableOpacity onPress={() => setAmountIn(tokenIn.balance || '0')}>
-                                        <Text className="text-primary text-xs font-bold ml-1">MAX</Text>
+                                    <TouchableOpacity
+                                        onPress={() => setAmountIn(tokenIn.balance || '0')}
+                                        className="ml-1 bg-primary/10 px-2 py-0.5 rounded-full"
+                                        accessibilityLabel="Use maximum balance"
+                                        accessibilityRole="button"
+                                    >
+                                        <Text className="text-primary text-xs font-bold">MAX</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -260,24 +265,32 @@ export default function SwapScreen() {
                             />
                         )}
 
-                        {/* Action Button */}
-                        <Button
-                            className="h-14 mt-2"
-                            size="lg"
-                            onPress={handleSwap}
-                            disabled={!amountIn || parseFloat(amountIn) <= 0 || loading}
-                        >
-                            {loading ? (
-                                <View className="flex-row items-center gap-2">
-                                    <RefreshCwIcon size={20} className="text-primary-foreground animate-spin" />
-                                    <Text className="font-bold text-lg text-primary-foreground">Processing...</Text>
-                                </View>
-                            ) : (
-                                <Text className="font-bold text-lg text-primary-foreground">
-                                    {!amountIn ? 'Enter an amount' : 'Swap'}
-                                </Text>
-                            )}
-                        </Button>
+                        {/* Action Button - Enhanced with Glow */}
+                        <View className="mt-2">
+                            {/* Glow container */}
+                            <View className={`absolute inset-0 rounded-xl bg-primary/30 blur-xl ${!amountIn || parseFloat(amountIn) <= 0 || loading ? 'opacity-0' : 'opacity-100'}`} />
+                            <Button
+                                className="h-14 relative"
+                                size="lg"
+                                onPress={handleSwap}
+                                disabled={!amountIn || parseFloat(amountIn) <= 0 || loading}
+                            >
+                                {loading ? (
+                                    <View className="flex-row items-center gap-2">
+                                        <RefreshCwIcon size={20} className="text-primary-foreground animate-spin" />
+                                        <Text className="font-bold text-lg text-primary-foreground">Processing...</Text>
+                                    </View>
+                                ) : !amountIn ? (
+                                    <Text className="font-bold text-lg text-primary-foreground opacity-70">
+                                        Enter an amount
+                                    </Text>
+                                ) : (
+                                    <Text className="font-bold text-lg text-primary-foreground">
+                                        Swap {tokenIn.symbol} → {tokenOut.symbol}
+                                    </Text>
+                                )}
+                            </Button>
+                        </View>
                     </Card>
 
                     {/* Footer Info */}
