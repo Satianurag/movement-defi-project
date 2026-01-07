@@ -1,13 +1,52 @@
 import { Tabs } from 'expo-router';
 import { CompassIcon, UserIcon, SettingsIcon, ArrowLeftRightIcon, WalletIcon } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
-import { Platform, View } from 'react-native';
+import { Platform, View, Text } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { THEME } from '@/lib/theme';
+
+// Tab badge component for notifications
+function TabBadge({ count }: { count?: number }) {
+    if (!count || count <= 0) return null;
+
+    return (
+        <View
+            className="absolute -top-1 -right-2 min-w-[18px] h-[18px] rounded-full bg-destructive items-center justify-center px-1"
+            accessibilityLabel={`${count} notifications`}
+        >
+            <Text className="text-[10px] font-bold text-white">
+                {count > 99 ? '99+' : count}
+            </Text>
+        </View>
+    );
+}
+
+// Icon wrapper with optional badge
+function TabIcon({
+    Icon,
+    color,
+    focused,
+    badgeCount
+}: {
+    Icon: any;
+    color: string;
+    focused: boolean;
+    badgeCount?: number;
+}) {
+    return (
+        <View className="relative">
+            <Icon size={24} color={color} strokeWidth={focused ? 2.5 : 2} />
+            <TabBadge count={badgeCount} />
+        </View>
+    );
+}
 
 export default function TabLayout() {
     const { colorScheme } = useColorScheme();
     const theme = THEME[colorScheme ?? 'light'];
+
+    // This would come from a notification context in production
+    const notificationCount = 0; // Set to > 0 to show badge
 
     const handleTabPress = () => {
         if (Platform.OS !== 'web') {
@@ -46,7 +85,7 @@ export default function TabLayout() {
                 options={{
                     title: 'Explore',
                     tabBarIcon: ({ color, focused }) => (
-                        <CompassIcon size={24} color={color} strokeWidth={focused ? 2.5 : 2} />
+                        <TabIcon Icon={CompassIcon} color={color} focused={focused} />
                     ),
                 }}
                 listeners={{
@@ -58,7 +97,7 @@ export default function TabLayout() {
                 options={{
                     title: 'Swap',
                     tabBarIcon: ({ color, focused }) => (
-                        <ArrowLeftRightIcon size={24} color={color} strokeWidth={focused ? 2.5 : 2} />
+                        <TabIcon Icon={ArrowLeftRightIcon} color={color} focused={focused} />
                     ),
                 }}
                 listeners={{
@@ -70,7 +109,7 @@ export default function TabLayout() {
                 options={{
                     title: 'Earn',
                     tabBarIcon: ({ color, focused }) => (
-                        <WalletIcon size={24} color={color} strokeWidth={focused ? 2.5 : 2} />
+                        <TabIcon Icon={WalletIcon} color={color} focused={focused} />
                     ),
                 }}
                 listeners={{
@@ -82,7 +121,12 @@ export default function TabLayout() {
                 options={{
                     title: 'Profile',
                     tabBarIcon: ({ color, focused }) => (
-                        <UserIcon size={24} color={color} strokeWidth={focused ? 2.5 : 2} />
+                        <TabIcon
+                            Icon={UserIcon}
+                            color={color}
+                            focused={focused}
+                            badgeCount={notificationCount}
+                        />
                     ),
                 }}
                 listeners={{
@@ -94,7 +138,7 @@ export default function TabLayout() {
                 options={{
                     title: 'Settings',
                     tabBarIcon: ({ color, focused }) => (
-                        <SettingsIcon size={24} color={color} strokeWidth={focused ? 2.5 : 2} />
+                        <TabIcon Icon={SettingsIcon} color={color} focused={focused} />
                     ),
                 }}
                 listeners={{
@@ -104,3 +148,4 @@ export default function TabLayout() {
         </Tabs>
     );
 }
+

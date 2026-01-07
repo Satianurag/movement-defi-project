@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { View, Pressable, ScrollView, Modal } from 'react-native';
 import {
     WalletIcon,
@@ -18,6 +19,52 @@ import { FundWallet } from '@/components/wallet/FundWallet';
 import * as Clipboard from 'expo-clipboard';
 import { PortfolioSection } from '@/components/profile/PortfolioSection';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// Profile skeleton loading component
+function ProfileSkeleton() {
+    return (
+        <View className="p-4 gap-4">
+            {/* Wallet Card Skeleton */}
+            <Card className="bg-card border-border">
+                <CardContent className="p-4">
+                    <View className="flex-row items-center gap-3">
+                        <Skeleton className="h-12 w-12 rounded-full" />
+                        <View className="flex-1 gap-2">
+                            <Skeleton className="h-3 w-20" />
+                            <Skeleton className="h-5 w-32" />
+                        </View>
+                        <Skeleton className="h-8 w-8 rounded" />
+                    </View>
+                    <View className="flex-row gap-2 mt-4">
+                        <Skeleton className="flex-1 h-10 rounded-md" />
+                        <Skeleton className="flex-1 h-10 rounded-md" />
+                    </View>
+                </CardContent>
+            </Card>
+
+            {/* Portfolio Skeleton */}
+            <View className="gap-3">
+                <Skeleton className="h-6 w-24" />
+                <Card className="p-4">
+                    <View className="gap-3">
+                        <View className="flex-row justify-between">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-4 w-16" />
+                        </View>
+                        <View className="flex-row justify-between">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-4 w-12" />
+                        </View>
+                        <View className="flex-row justify-between">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-4 w-20" />
+                        </View>
+                    </View>
+                </Card>
+            </View>
+        </View>
+    );
+}
 
 export default function ProfileScreen() {
     const { user, isReady, logout, address: walletAddress, smartWalletAddress, isAuthenticated } = useWallet();
@@ -49,9 +96,9 @@ export default function ProfileScreen() {
         return (
             <>
                 <Stack.Screen options={{ title: 'Profile', headerShown: true }} />
-                <View className="flex-1 bg-background items-center justify-center">
-                    <Text className="text-muted-foreground">Loading...</Text>
-                </View>
+                <ScrollView className="flex-1 bg-background">
+                    <ProfileSkeleton />
+                </ScrollView>
             </>
         );
     }
@@ -78,7 +125,7 @@ export default function ProfileScreen() {
                                     </View>
                                     <Pressable onPress={handleCopyAddress} className="p-2">
                                         {copied ? (
-                                            <CheckIcon size={20} className="text-green-500" />
+                                            <CheckIcon size={20} className="text-success" />
                                         ) : (
                                             <CopyIcon size={20} className="text-muted-foreground" />
                                         )}
